@@ -1,0 +1,14 @@
+# Configuración local del preview de Claude Code
+.claude/
+
+# Esqueleto Django sin usar (decidir si se elimina o se integra)
+cauchogar/
+
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+
+# Sistema operativo
+Thumbs.db
+.DS_Store
