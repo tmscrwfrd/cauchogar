@@ -179,10 +179,10 @@
       toggleNeg(out.tir, r.tir < 15);
       toggleNeg(out.cmu, r.cmu < 0);
 
-      drawSpark(charts.cmu,       serie, "cmu",         d, "#0ea36b");
-      drawSpark(charts.resultado, serie, "resultadoOp", d, "#1d4ed8");
-      drawSpark(charts.van,       serie, "van",         d, "#7c3aed");
-      drawSpark(charts.tir,       serie, "tir",         d, "#d97706");
+      drawSpark(charts.cmu,       serie, "cmu",         d, "#cdff00");
+      drawSpark(charts.resultado, serie, "resultadoOp", d, "#cdff00");
+      drawSpark(charts.van,       serie, "van",         d, "#cdff00");
+      drawSpark(charts.tir,       serie, "tir",         d, "#cdff00");
     }
 
     function toggleNeg(el, isNeg) {
