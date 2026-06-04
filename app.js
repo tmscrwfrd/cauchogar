@@ -4,7 +4,7 @@
    - Reveal-on-scroll (IntersectionObserver)
    - Contadores animados del hero
    - Dashboard de sensibilidad (slider + mini-gráficas canvas)
-   - Scroll infinito de casos de aplicación
+   - 
    ========================================================= */
 (function () {
   "use strict";
