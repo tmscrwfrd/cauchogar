@@ -332,9 +332,9 @@ section { padding: 96px 0; }
 }
 .slider-labels { display: flex; justify-content: space-between; margin-top: 10px; font-size: .8rem; color: var(--c-text-soft); }
 
-.sensitivity-results { display: grid; gap: 24px; grid-template-columns: 1fr; }
-@media (min-width: 640px) { .sensitivity-results { grid-template-columns: 1fr 1fr; } }
-@media (min-width: 980px) { .sensitivity-results { grid-template-columns: repeat(4, 1fr); } }
+/* 2x2 incluso en mobile: así los 4 gráficos se ven juntos al mover el slider (issue #2) */
+.sensitivity-results { display: grid; gap: 14px; grid-template-columns: 1fr 1fr; }
+@media (min-width: 980px) { .sensitivity-results { grid-template-columns: repeat(4, 1fr); gap: 24px; } }
 .result-card {
     background: #fff;
     border: 1px solid var(--c-border);
@@ -347,6 +347,13 @@ section { padding: 96px 0; }
 .result-value { font-size: 1.6rem; font-weight: 800; letter-spacing: -.02em; transition: color .25s; }
 .result-value.is-negative { color: var(--c-danger); }
 .mini-chart { width: 100%; height: 48px; margin-top: 12px; }
+/* Compacto en mobile para que los 4 cards entren a la vez (issue #2) */
+@media (max-width: 639px) {
+    .result-card { padding: 14px 12px; }
+    .result-card h4 { font-size: .68rem; margin-bottom: 6px; }
+    .result-value { font-size: 1.15rem; }
+    .mini-chart { height: 34px; margin-top: 8px; }
+}
 .result-cmu       { border-top: 3px solid var(--c-accent); }
 .result-operativo { border-top: 3px solid var(--c-primary); }
 .result-van       { border-top: 3px solid #7c3aed; }

@@ -268,7 +268,9 @@
     var pool = M.cases;
     var perBatch = 6;
     var index = 0;
-    var maxCards = 60;            // tope de seguridad para no crecer infinito de verdad
+    // Se carga el catálogo completo de casos únicos y luego se detiene, para que
+    // el usuario pueda seguir hasta "Factores de Riesgo" (issue #1).
+    var maxCards = pool.length;
     var loading = false;
     var ro = revealObserver();
 
@@ -312,7 +314,9 @@
 
     if ("IntersectionObserver" in window) {
       var io = new IntersectionObserver(function (entries) {
-        if (entries[0].isIntersecting) loadBatch();
+        if (!entries[0].isIntersecting) return;
+        loadBatch();
+        if (index >= maxCards) io.disconnect(); // ya no hay más casos que cargar
       }, { rootMargin: "200px" });
       io.observe(sentinel);
     } else {
