@@ -279,7 +279,6 @@
       el.className = "case-card reveal";
       el.innerHTML =
         '<div class="case-top">' +
-          '<div class="case-emoji">' + c.emoji + '</div>' +
           '<div><h4>' + c.titulo + '</h4><span class="case-tag">' + c.tag + '</span></div>' +
         '</div>' +
         '<p>' + c.desc + '</p>' +
