@@ -46,18 +46,18 @@
 
   /* ---- Catálogo de casos de aplicación (scroll infinito) ---- */
   var CASES = [
-    { emoji: "🏥", titulo: "Geriátricos",        tag: "B2B · Salud",        desc: "Pasillos y habitaciones con amortiguación de impacto para residencias de adultos mayores.", metrica: "Caídas −68%" },
-    { emoji: "🧒", titulo: "Guarderías",          tag: "B2B · Educación",    desc: "Salas de juego seguras donde los más chicos pueden moverse libremente.",                    metrica: "Lesiones −70%" },
-    { emoji: "🏠", titulo: "Hogares con niños",   tag: "B2C · Familias",     desc: "Cuartos y áreas de juego protegidas sin renunciar al diseño.",                              metrica: "Premium asequible" },
-    { emoji: "🏫", titulo: "Colegios",            tag: "B2B · Educación",    desc: "Patios, gimnasios y zonas de recreo con superficie anti-impacto.",                          metrica: "Norma seguridad ✓" },
-    { emoji: "🏋️", titulo: "Gimnasios",           tag: "B2B · Deporte",      desc: "Zonas de peso libre y funcional con absorción de vibración y ruido.",                       metrica: "Ruido −40%" },
-    { emoji: "🏊", titulo: "Bordes de pileta",    tag: "B2C · Hogar",        desc: "Superficie antideslizante para zonas húmedas y solárium.",                                  metrica: "Antideslizante" },
-    { emoji: "🦽", titulo: "Centros de rehab.",   tag: "B2B · Salud",        desc: "Pisos seguros para terapia y movilidad asistida.",                                          metrica: "Accesible" },
-    { emoji: "🏢", titulo: "Coworkings",          tag: "B2B · Oficinas",     desc: "Áreas de descanso y break con confort acústico y térmico.",                                 metrica: "ESG ready" },
-    { emoji: "🐶", titulo: "Pet-friendly",        tag: "B2C · Hogar",        desc: "Espacios para mascotas, fáciles de limpiar y resistentes.",                                 metrica: "Lavable" },
-    { emoji: "🎨", titulo: "Espacios creativos",  tag: "B2B · Cultura",      desc: "Talleres y salas de arte donde la seguridad acompaña la actividad.",                        metrica: "Modular" },
-    { emoji: "🏬", titulo: "Retail construcción", tag: "B2B · Distribución", desc: "Línea premium para corralones y retailers de materiales.",                                  metrica: "Margen alto" },
-    { emoji: "🌿", titulo: "Terrazas verdes",     tag: "B2C · Exterior",     desc: "Pisos sostenibles para balcones y terrazas urbanas.",                                       metrica: "100% reciclado" }
+    { titulo: "Geriátricos",        tag: "B2B · Salud",        desc: "Pasillos y habitaciones con amortiguación de impacto para residencias de adultos mayores.", metrica: "Caídas −68%" },
+    { titulo: "Guarderías",          tag: "B2B · Educación",    desc: "Salas de juego seguras donde los más chicos pueden moverse libremente.",                    metrica: "Lesiones −70%" },
+    { titulo: "Hogares con niños",   tag: "B2C · Familias",     desc: "Cuartos y áreas de juego protegidas sin renunciar al diseño.",                              metrica: "Premium asequible" },
+    { titulo: "Colegios",            tag: "B2B · Educación",    desc: "Patios, gimnasios y zonas de recreo con superficie anti-impacto.",                          metrica: "Norma seguridad" },
+    { titulo: "Gimnasios",           tag: "B2B · Deporte",      desc: "Zonas de peso libre y funcional con absorción de vibración y ruido.",                       metrica: "Ruido −40%" },
+    { titulo: "Bordes de pileta",    tag: "B2C · Hogar",        desc: "Superficie antideslizante para zonas húmedas y solárium.",                                  metrica: "Antideslizante" },
+    { titulo: "Centros de rehab.",   tag: "B2B · Salud",        desc: "Pisos seguros para terapia y movilidad asistida.",                                          metrica: "Accesible" },
+    { titulo: "Coworkings",          tag: "B2B · Oficinas",     desc: "Áreas de descanso y break con confort acústico y térmico.",                                 metrica: "ESG ready" },
+    { titulo: "Pet-friendly",        tag: "B2C · Hogar",        desc: "Espacios para mascotas, fáciles de limpiar y resistentes.",                                 metrica: "Lavable" },
+    { titulo: "Espacios creativos",  tag: "B2B · Cultura",      desc: "Talleres y salas de arte donde la seguridad acompaña la actividad.",                        metrica: "Modular" },
+    { titulo: "Retail construcción", tag: "B2B · Distribución", desc: "Línea premium para corralones y retailers de materiales.",                                  metrica: "Margen alto" },
+    { titulo: "Terrazas verdes",     tag: "B2C · Exterior",     desc: "Pisos sostenibles para balcones y terrazas urbanas.",                                       metrica: "100% reciclado" }
   ];
 
   window.CAUCHO = {
