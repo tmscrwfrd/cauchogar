@@ -127,56 +127,95 @@
      Dashboard de sensibilidad
      ============================================================ */
   function initSensitivity() {
-    var slider = document.getElementById("priceSlider");
-    if (!slider || !M) return;
+    var slider = document.getElementById("driverSlider");
+    if (!slider || !M || !M.drivers) return;
 
     var out = {
-      variation:  document.getElementById("priceVariation"),
-      price:      document.getElementById("priceValue"),
-      cmu:        document.getElementById("cmuResult"),
-      resultado:  document.getElementById("resultadoResult"),
-      van:        document.getElementById("vanResult"),
-      tir:        document.getElementById("tirResult"),
-      breakeven:  document.getElementById("breakeven")
+      variation: document.getElementById("driverVariation"),
+      value:     document.getElementById("driverValue"),
+      varLabel:  document.getElementById("driverVarLabel"),
+      cmu:       document.getElementById("cmuResult"),
+      resultado: document.getElementById("resultadoResult"),
+      van:       document.getElementById("vanResult"),
+      tir:       document.getElementById("tirResult"),
+      breakeven: document.getElementById("breakeven"),
+      tasaCorte: document.getElementById("tasaCorte")
     };
-
     var charts = {
-      cmu:        document.getElementById("cmuChart"),
-      resultado:  document.getElementById("resultadoChart"),
-      van:        document.getElementById("vanChart"),
-      tir:        document.getElementById("tirChart")
+      cmu:       document.getElementById("cmuChart"),
+      resultado: document.getElementById("resultadoChart"),
+      van:       document.getElementById("vanChart"),
+      tir:       document.getElementById("tirChart")
     };
 
-    var serie = M.series();
+    function driverMeta(key) {
+      for (var i = 0; i < M.drivers.length; i++) if (M.drivers[i].key === key) return M.drivers[i];
+      return M.drivers[0];
+    }
 
-    // Punto de quiebre real: donde el VAN cruza de positivo a negativo
-    // (la serie va de -25..+25, el VAN crece con el precio).
-    var breakeven = (function () {
-      for (var i = 1; i < serie.length; i++) {
-        if (serie[i - 1].van < 0 && serie[i].van >= 0) {
-          return "Entre " + serie[i - 1].deltaPct + "% y " + serie[i].deltaPct + "%";
-        }
+    var activeKey = M.drivers[0].key;
+    var driver = driverMeta(activeKey);
+    var serie = M.seriesDriver(activeKey);
+
+    // Construir las tabs de drivers
+    var tabsWrap = document.getElementById("driverTabs");
+    if (tabsWrap) {
+      M.drivers.forEach(function (dr) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "driver-tab" + (dr.key === activeKey ? " is-active" : "");
+        b.setAttribute("role", "tab");
+        b.setAttribute("aria-selected", dr.key === activeKey ? "true" : "false");
+        b.dataset.key = dr.key;
+        b.innerHTML = '<span class="driver-tab-num">0' + dr.crit + '</span>' + dr.label;
+        b.addEventListener("click", function () { setDriver(dr.key); });
+        tabsWrap.appendChild(b);
+      });
+    }
+
+    function setDriver(key) {
+      if (key === activeKey) return;
+      activeKey = key;
+      driver = driverMeta(key);
+      serie = M.seriesDriver(key);
+      if (tabsWrap) {
+        [].forEach.call(tabsWrap.children, function (b) {
+          var on = b.dataset.key === key;
+          b.classList.toggle("is-active", on);
+          b.setAttribute("aria-selected", on ? "true" : "false");
+        });
       }
-      if (serie[0].van >= 0) return "VAN positivo en todo el rango";
-      return "VAN negativo en todo el rango";
-    })();
+      if (out.varLabel) out.varLabel.textContent = driver.sliderLabel;
+      render();
+    }
+
+    function fmtDriverValue(v) {
+      if (driver.unidad === "m²/mes") return Math.round(v).toLocaleString("es-AR") + " m²/mes";
+      if (driver.unidad === "$/mes")  return fmtMoney(v) + "/mes";
+      return fmtMoney(v) + "/m²";
+    }
 
     function render() {
       var d = parseInt(slider.value, 10);
-      var r = M.compute(d);
+      var r = M.computeDriver(activeKey, d);
 
       out.variation.textContent = (d > 0 ? "+" : "") + d + "%";
-      out.price.textContent     = fmtMoney(r.precio);
+      out.value.textContent     = fmtDriverValue(r.value);
       out.cmu.textContent       = fmtMoney(r.cmu);
       out.resultado.textContent = fmtM(r.resultadoOp);
       out.van.textContent       = fmtM(r.van);
-      out.tir.textContent       = r.tir.toFixed(1) + "%";
-      if (out.breakeven) out.breakeven.textContent = breakeven;
+      out.tir.textContent       = (r.tir === null) ? "n/a" : r.tir.toFixed(1) + "%";
+      if (out.breakeven) out.breakeven.textContent = M.breakeven(activeKey);
+      if (out.tasaCorte) {
+        var ok = (r.tir !== null && r.tir >= M.BASE.corte);
+        var tirTxt = (r.tir === null) ? "n/a" : Math.round(r.tir) + "%";
+        out.tasaCorte.textContent = "15% (TIR " + tirTxt + (ok ? " > " : " < ") + "15%)";
+        toggleNeg(out.tasaCorte, !ok);
+      }
 
-      // Marcar resultados en rojo cuando son negativos / bajo tasa de corte
       toggleNeg(out.resultado, r.resultadoOp < 0);
       toggleNeg(out.van, r.van < 0);
-      toggleNeg(out.tir, r.tir < 15);
+      toggleNeg(out.tir, r.tir === null || r.tir < M.BASE.corte);
       toggleNeg(out.cmu, r.cmu < 0);
 
       drawSpark(charts.cmu,       serie, "cmu",         d, "#cdff00");
@@ -189,9 +228,46 @@
       if (el) el.classList.toggle("is-negative", !!isNeg);
     }
 
+    if (out.varLabel) out.varLabel.textContent = driver.sliderLabel;
     slider.addEventListener("input", render);
     window.addEventListener("resize", debounce(render, 120));
+    renderTornado();
     render();
+  }
+
+  /* Tornado: amplitud de VAN por driver (barras CSS) */
+  function renderTornado() {
+    var wrap = document.getElementById("tornado");
+    if (!wrap || !M || !M.tornado) return;
+    var data = M.tornado;
+    var lo = Math.min(0, Math.min.apply(null, data.map(function (t) { return t.vanAdv; })));
+    var hi = Math.max(0, Math.max.apply(null, data.map(function (t) { return t.vanFav; })));
+    var span = (hi - lo) || 1;
+    var pos = function (v) { return ((v - lo) / span) * 100; };
+    var zero = pos(0);
+
+    wrap.innerHTML = "";
+    data.forEach(function (t) {
+      var xa = pos(t.vanAdv), xf = pos(t.vanFav);
+      var left = Math.min(xa, xf), right = Math.max(xa, xf);
+      var loss = "";
+      if (left < zero) {
+        var lr = Math.min(right, zero);
+        loss = '<span class="tornado-loss" style="left:' + left + '%;width:' + (lr - left) + '%"></span>';
+      }
+      var row = document.createElement("div");
+      row.className = "tornado-row";
+      row.innerHTML =
+        '<span class="tornado-rank">0' + t.rank + '</span>' +
+        '<span class="tornado-name">' + t.label + '</span>' +
+        '<span class="tornado-track">' +
+          '<span class="tornado-zero" style="left:' + zero + '%"></span>' +
+          '<span class="tornado-bar" style="left:' + left + '%;width:' + (right - left) + '%"></span>' +
+          loss +
+        '</span>' +
+        '<span class="tornado-amp">$' + Math.round(t.amplitud).toLocaleString("es-AR") + 'M</span>';
+      wrap.appendChild(row);
+    });
   }
 
   /* Dibuja una sparkline en canvas con el punto actual resaltado */
@@ -207,8 +283,10 @@
     ctx.clearRect(0, 0, w, h);
 
     var vals = serie.map(function (s) { return s[key]; });
-    var min = Math.min.apply(null, vals);
-    var max = Math.max.apply(null, vals);
+    var nn = vals.filter(function (v) { return v !== null && !isNaN(v); });
+    if (!nn.length) return;
+    var min = Math.min.apply(null, nn);
+    var max = Math.max.apply(null, nn);
     var range = (max - min) || 1;
     var pad = 6;
 
@@ -217,7 +295,7 @@
 
     // Línea base en cero (si el rango lo cruza)
     if (min < 0 && max > 0) {
-      ctx.strokeStyle = "rgba(220,38,38,.35)";
+      ctx.strokeStyle = "rgba(255,90,77,.4)";
       ctx.setLineDash([3, 3]);
       ctx.beginPath();
       ctx.moveTo(pad, y(0)); ctx.lineTo(w - pad, y(0));
@@ -225,34 +303,44 @@
       ctx.setLineDash([]);
     }
 
-    // Área + línea
+    // Línea (saltando puntos no modelados / null)
     ctx.beginPath();
+    var started = false;
     serie.forEach(function (s, i) {
-      var px = x(i), py = y(s[key]);
-      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      var v = s[key];
+      if (v === null || isNaN(v)) { started = false; return; }
+      var px = x(i), py = y(v);
+      if (!started) { ctx.moveTo(px, py); started = true; }
+      else ctx.lineTo(px, py);
     });
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
     ctx.lineJoin = "round";
     ctx.stroke();
 
-    ctx.lineTo(x(serie.length - 1), h - pad);
-    ctx.lineTo(x(0), h - pad);
-    ctx.closePath();
-    ctx.fillStyle = hexToRgba(color, 0.10);
-    ctx.fill();
+    // Área de relleno solo cuando la serie no tiene huecos
+    if (nn.length === serie.length) {
+      ctx.lineTo(x(serie.length - 1), h - pad);
+      ctx.lineTo(x(0), h - pad);
+      ctx.closePath();
+      ctx.fillStyle = hexToRgba(color, 0.10);
+      ctx.fill();
+    }
 
     // Punto actual
     var idx = currentDelta + 25; // serie va de -25..25
     if (idx >= 0 && idx < serie.length) {
-      var cx = x(idx), cy = y(serie[idx][key]);
-      ctx.beginPath();
-      ctx.arc(cx, cy, 4, 0, Math.PI * 2);
-      ctx.fillStyle = color;
-      ctx.fill();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "#fff";
-      ctx.stroke();
+      var cv = serie[idx][key];
+      if (cv !== null && !isNaN(cv)) {
+        var cx = x(idx), cy = y(cv);
+        ctx.beginPath();
+        ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#f2f2ec";
+        ctx.stroke();
+      }
     }
   }
 
