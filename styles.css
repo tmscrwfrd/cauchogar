@@ -390,6 +390,43 @@ body { counter-reset: sec; }
 .warning-item { display: flex; justify-content: space-between; gap: 16px; padding: 16px 18px; background: var(--bg); }
 .warning-label { font-size: .9rem; color: var(--ink-dim); }
 .warning-value { font-family: var(--f-mono); font-size: .82rem; text-align: right; color: var(--ink); }
+.warning-value.is-negative { color: var(--danger); }
+
+/* ---- Driver tabs ---- */
+.driver-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: clamp(28px, 4vw, 40px); }
+.driver-tab {
+    font-family: var(--f-mono); font-size: .76rem; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--ink-dim); background: transparent;
+    border: 1px solid var(--line); padding: 12px 16px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 9px;
+    transition: color .2s, border-color .2s, background .2s;
+}
+.driver-tab:hover { color: var(--ink); border-color: var(--line-2); }
+.driver-tab-num { font-size: .68rem; color: var(--ink-faint); transition: color .2s; }
+.driver-tab.is-active { background: var(--lime); color: #000; border-color: var(--lime); }
+.driver-tab.is-active .driver-tab-num { color: #000; }
+
+/* ---- Tornado (criticidad de drivers) ---- */
+.tornado { margin-top: clamp(36px, 5vw, 56px); border: 1px solid var(--line); padding: clamp(24px, 3vw, 40px); }
+.tornado-title { font-family: var(--f-mono); text-transform: uppercase; letter-spacing: .14em; font-size: .82rem; color: var(--lime); margin-bottom: 10px; font-weight: 400; }
+.tornado-sub { color: var(--ink-dim); font-size: .92rem; max-width: 60ch; margin-bottom: 28px; }
+.tornado-chart { display: flex; flex-direction: column; gap: 10px; }
+.tornado-row { display: grid; grid-template-columns: 28px minmax(96px, 1.2fr) 3fr auto; align-items: center; gap: 12px; }
+.tornado-rank { font-family: var(--f-mono); font-size: .8rem; color: var(--lime); }
+.tornado-name { font-family: var(--f-sans); font-size: .9rem; color: var(--ink); }
+.tornado-track { position: relative; height: 22px; background: var(--bg-soft); border: 1px solid var(--line); }
+.tornado-zero { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--ink-faint); }
+.tornado-bar { position: absolute; top: 3px; bottom: 3px; background: var(--lime); }
+.tornado-loss { position: absolute; top: 3px; bottom: 3px; background: var(--danger); }
+.tornado-amp { font-family: var(--f-mono); font-size: .82rem; color: var(--ink); text-align: right; white-space: nowrap; }
+.tornado-note { color: var(--ink-dim); font-size: .9rem; max-width: 70ch; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+@media (max-width: 600px) {
+    .tornado-row { grid-template-columns: 22px 1fr auto; grid-template-areas: "rank name amp" "track track track"; row-gap: 6px; }
+    .tornado-rank { grid-area: rank; }
+    .tornado-name { grid-area: name; }
+    .tornado-amp { grid-area: amp; }
+    .tornado-track { grid-area: track; }
+}
 
 /* ============================================================
    Market opportunity

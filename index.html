@@ -197,18 +197,20 @@
     <section id="sensibilidad" class="sensitivity-dashboard">
         <div class="container">
             <h2 class="section-title">Dashboard de Sensibilidad</h2>
-            <p class="section-subtitle">El precio es el driver más crítico. Ajusta el slider para ver cómo cambian los resultados.</p>
+            <p class="section-subtitle">Cinco drivers, un mismo motor de flujo de fondos a 10 años. Elegí un driver y movés el slider para ver cómo responden el VAN y la TIR del proyecto.</p>
+
+            <div class="driver-tabs" id="driverTabs" role="tablist"></div>
 
             <div class="sensitivity-controls">
                 <div class="slider-container">
                     <div class="slider-header">
-                        <label>Variación de Precio</label>
+                        <label id="driverVarLabel">Variación de Precio</label>
                         <div class="slider-value">
-                            <span id="priceVariation">0%</span>
-                            <span id="priceValue">$58,734</span>
+                            <span id="driverVariation">0%</span>
+                            <span id="driverValue">$58.734</span>
                         </div>
                     </div>
-                    <input type="range" id="priceSlider" min="-25" max="25" value="0" step="1" class="slider">
+                    <input type="range" id="driverSlider" min="-25" max="25" value="0" step="1" class="slider">
                     <div class="slider-labels">
                         <span>-25%</span>
                         <span>0%</span>
@@ -247,12 +249,12 @@
                 <h4>Análisis de Riesgo</h4>
                 <div class="warning-grid">
                     <div class="warning-item">
-                        <span class="warning-label">Punto de Quiebre (Negativo VAN)</span>
-                        <span class="warning-value" id="breakeven">Entre -5% y -10%</span>
+                        <span class="warning-label">Punto de Quiebre (VAN negativo)</span>
+                        <span class="warning-value" id="breakeven">—</span>
                     </div>
                     <div class="warning-item">
                         <span class="warning-label">Apalancamiento Operativo</span>
-                        <span class="warning-value">2.47x (Alto)</span>
+                        <span class="warning-value">2.5x (Alto)</span>
                     </div>
                     <div class="warning-item">
                         <span class="warning-label">Margen de Seguridad</span>
@@ -260,9 +262,16 @@
                     </div>
                     <div class="warning-item">
                         <span class="warning-label">Tasa de Corte</span>
-                        <span class="warning-value">15% (TIR 42% > 15%)</span>
+                        <span class="warning-value" id="tasaCorte">15% (TIR 42% &gt; 15%)</span>
                     </div>
                 </div>
+            </div>
+
+            <div class="tornado">
+                <h4 class="tornado-title">Criticidad de Drivers · Amplitud de VAN</h4>
+                <p class="tornado-sub">Cuánto valor está en juego (rango de VAN) según cada driver, de escenario adverso a favorable (±25%). Ranking de criticidad.</p>
+                <div class="tornado-chart" id="tornado"></div>
+                <p class="tornado-note">Precio y volumen son las palancas críticas: pueden destruir el VAN. La materia prima, pese a ser el insumo central, tiene impacto marginal. La disciplina de pricing y la ejecución comercial son lo que más protege al inversor.</p>
             </div>
         </div>
     </section>
