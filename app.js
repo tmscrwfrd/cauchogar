@@ -14,6 +14,7 @@
 
   document.addEventListener("DOMContentLoaded", function () {
     initNavbar();
+    initNavToggle();
     initReveal();
     initCounters();
     initSensitivity();
@@ -39,6 +40,52 @@
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
+  }
+
+  /* ============================================================
+     Menú hamburguesa (mobile)
+     ============================================================ */
+  function initNavToggle() {
+    var btn = document.getElementById("navToggle");
+    var menu = document.getElementById("navMenu");
+    var scrim = document.getElementById("navScrim");
+    if (!btn || !menu) return;
+
+    function setOpen(open) {
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+      btn.setAttribute("aria-label", open ? "Cerrar menú" : "Abrir menú");
+      menu.classList.toggle("is-open", open);
+      if (scrim) {
+        if (open) { scrim.hidden = false; requestAnimationFrame(function () { scrim.classList.add("is-open"); }); }
+        else { scrim.classList.remove("is-open"); }
+      }
+    }
+    function isOpen() { return btn.getAttribute("aria-expanded") === "true"; }
+    function toggle() { setOpen(!isOpen()); }
+    function close() { if (isOpen()) setOpen(false); }
+
+    btn.addEventListener("click", toggle);
+    if (scrim) scrim.addEventListener("click", close);
+
+    // Cerrar al elegir una sección
+    menu.addEventListener("click", function (e) {
+      if (e.target.closest("a")) close();
+    });
+
+    // Cerrar con Escape
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") close();
+    });
+
+    // Cerrar el panel cuando se vuelve a desktop y ocultar el scrim al terminar la transición
+    window.addEventListener("resize", debounce(function () {
+      if (window.innerWidth >= 860) close();
+    }, 150));
+    if (scrim) {
+      scrim.addEventListener("transitionend", function () {
+        if (!scrim.classList.contains("is-open")) scrim.hidden = true;
+      });
+    }
   }
 
   /* ============================================================

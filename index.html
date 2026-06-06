@@ -19,15 +19,24 @@
             <div class="logo">
                 <span class="logo-text">CaucHogar</span>
             </div>
-            <ul class="nav-menu">
+            <ul class="nav-menu" id="navMenu">
                 <li><a href="#problema" class="nav-link">Oportunidad</a></li>
                 <li><a href="#Indicadores" class="nav-link">Indicadores</a></li>
                 <li><a href="#sensibilidad" class="nav-link">Análisis</a></li>
                 <li><a href="#casos" class="nav-link">Casos</a></li>
                 <li><a href="#contacto" class="nav-link cta">Inversores</a></li>
             </ul>
+            <button class="nav-toggle" id="navToggle" type="button"
+                    aria-label="Abrir menú" aria-expanded="false" aria-controls="navMenu">
+                <span class="nav-toggle-box">
+                    <span class="nav-toggle-bar"></span>
+                    <span class="nav-toggle-bar"></span>
+                    <span class="nav-toggle-bar"></span>
+                </span>
+            </button>
         </div>
     </nav>
+    <div class="nav-scrim" id="navScrim" hidden></div>
 
     <!-- Hero Section -->
     <section class="hero">
