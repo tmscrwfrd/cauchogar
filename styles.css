@@ -230,6 +230,33 @@ body { counter-reset: sec; }
 .stat-value { font-family: var(--f-display); font-weight: 400; font-size: clamp(1.9rem, 4.6vw, 3.4rem); line-height: 1; color: var(--ink); }
 .stat-label { font-family: var(--f-mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .16em; color: var(--ink-dim); margin-top: 10px; }
 
+/* Hero layout: copy + product visual */
+.hero-inner { display: grid; grid-template-columns: 1fr; gap: clamp(28px, 5vw, 48px); align-items: end; }
+@media (min-width: 980px) {
+    .hero-inner { grid-template-columns: minmax(0, 1.25fr) minmax(0, .8fr); gap: clamp(28px, 4vw, 56px); align-items: center; }
+    /* En dos columnas la caja de texto es más angosta: bajamos el cuerpo del título
+       para que no envuelva en 4 líneas y empuje los stats fuera del viewport. */
+    .hero-copy .hero-title { font-size: clamp(3rem, 6.2vw, 6.6rem); }
+}
+.hero-visual { position: relative; order: -1; }
+@media (min-width: 980px) { .hero-visual { order: 0; align-self: center; } }
+.hero-visual img {
+    width: 100%; height: auto;
+    /* funde el fondo gris del estudio hacia el negro de la página */
+    -webkit-mask-image: radial-gradient(ellipse 78% 78% at 52% 48%, #000 56%, transparent 100%);
+            mask-image: radial-gradient(ellipse 78% 78% at 52% 48%, #000 56%, transparent 100%);
+    filter: drop-shadow(0 28px 60px rgba(0, 0, 0, .6)) contrast(1.04) saturate(1.02);
+    animation: floatY 7s ease-in-out infinite;
+}
+.hero-visual-tag {
+    position: absolute; left: 4%; bottom: 6%;
+    font-family: var(--f-mono); font-size: .66rem; text-transform: uppercase; letter-spacing: .14em;
+    color: var(--ink-dim); background: rgba(10, 10, 9, .55); border: 1px solid var(--line);
+    padding: 6px 12px; backdrop-filter: blur(4px);
+}
+@keyframes floatY { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+@media (prefers-reduced-motion: reduce) { .hero-visual img { animation: none; } }
+
 /* ============================================================
    Marquee
    ============================================================ */
@@ -445,6 +472,36 @@ body { counter-reset: sec; }
 /* ============================================================
    Casos de aplicación (scroll infinito)
    ============================================================ */
+/* ============================================================
+   Banda de material (macro)
+   ============================================================ */
+.material-band {
+    position: relative; isolation: isolate;
+    min-height: clamp(360px, 56vw, 620px);
+    display: flex; align-items: flex-end;
+    overflow: hidden;
+    border-block: 1px solid var(--line);
+}
+.material-band-img {
+    position: absolute; inset: 0; z-index: -2;
+    width: 100%; height: 100%; object-fit: cover;
+}
+.material-band-overlay {
+    position: relative; width: 100%;
+    padding-block: clamp(40px, 7vw, 96px);
+    background: linear-gradient(to top, rgba(10, 10, 9, .92) 0%, rgba(10, 10, 9, .55) 45%, rgba(10, 10, 9, 0) 100%);
+}
+.material-kicker {
+    font-family: var(--f-mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .22em;
+    color: var(--lime); margin-bottom: 16px;
+}
+.material-title {
+    font-family: var(--f-display); font-weight: 400; text-transform: uppercase;
+    font-size: clamp(2.2rem, 6.5vw, 5rem); line-height: .9; letter-spacing: -.01em;
+    margin-bottom: clamp(14px, 2vw, 22px); text-wrap: balance;
+}
+.material-desc { color: var(--ink-dim); max-width: 46ch; font-size: clamp(1rem, 1.5vw, 1.2rem); }
+
 .use-cases { background: var(--bg-soft); }
 .cases-grid { display: grid; gap: clamp(14px, 1.8vw, 22px); grid-template-columns: 1fr; margin-top: clamp(40px, 6vw, 64px); }
 @media (min-width: 640px) { .cases-grid { grid-template-columns: 1fr 1fr; } }
@@ -463,6 +520,21 @@ body { counter-reset: sec; }
 .case-metric { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
 .case-metric span { font-family: var(--f-mono); font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-faint); }
 .case-metric strong { font-family: var(--f-mono); color: var(--lime); font-weight: 700; font-size: .84rem; }
+
+/* Tarjetas con foto */
+.case-card.has-media { display: flex; flex-direction: column; }
+.case-media {
+    margin: calc(-1 * clamp(22px, 2.6vw, 30px));
+    margin-bottom: clamp(18px, 2.2vw, 24px);
+    border-bottom: 1px solid var(--line);
+    overflow: hidden; aspect-ratio: 16 / 10; background: var(--bg-soft);
+}
+.case-media img {
+    width: 100%; height: 100%; object-fit: cover;
+    filter: contrast(1.03) saturate(1.02);
+    transition: transform .6s var(--ease);
+}
+.case-card.has-media:hover .case-media img { transform: scale(1.05); }
 
 .infinite-sentinel { height: 1px; }
 .loader { display: flex; justify-content: center; padding: 40px 0 0; }
