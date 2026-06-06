@@ -180,6 +180,61 @@ body { counter-reset: sec; }
 .nav-link.cta::after { display: none; }
 .nav-link.cta:hover { background: #fff; transform: translateY(-1px); }
 
+/* ---------- Botón hamburguesa (mobile) ---------- */
+.nav-toggle {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; margin-right: -10px;
+    background: none; border: 0; cursor: pointer; color: var(--lime);
+    -webkit-tap-highlight-color: transparent;
+}
+@media (min-width: 860px) { .nav-toggle { display: none; } }
+.nav-toggle-box { position: relative; width: 26px; height: 14px; }
+.nav-toggle-bar {
+    position: absolute; left: 0; width: 100%; height: 2px; background: currentColor;
+    transition: transform .3s var(--ease), opacity .2s var(--ease), top .3s var(--ease);
+}
+.nav-toggle-bar:nth-child(1) { top: 0; }
+.nav-toggle-bar:nth-child(2) { top: 6px; }
+.nav-toggle-bar:nth-child(3) { top: 12px; }
+.nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(1) { top: 6px; transform: rotate(45deg); }
+.nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(2) { opacity: 0; }
+.nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(3) { top: 6px; transform: rotate(-45deg); }
+
+/* ---------- Scrim detrás del panel ---------- */
+.nav-scrim {
+    position: fixed; inset: var(--nav-h) 0 0 0; z-index: 90;
+    background: rgba(10, 10, 9, .6);
+    opacity: 0; transition: opacity .3s var(--ease);
+}
+.nav-scrim.is-open { opacity: 1; }
+.nav-scrim[hidden] { display: none; }
+@media (min-width: 860px) { .nav-scrim { display: none; } }
+
+/* ---------- Panel de navegación (mobile) ---------- */
+@media (max-width: 859.98px) {
+    .nav-menu {
+        position: fixed; top: var(--nav-h); left: 0; right: 0; z-index: 95;
+        display: flex; flex-direction: column; align-items: stretch; gap: 0;
+        background: rgba(10, 10, 9, .98);
+        border-bottom: 1px solid var(--line);
+        padding: 6px var(--pad) 22px;
+        visibility: hidden; opacity: 0; transform: translateY(-12px); pointer-events: none;
+        transition: transform .3s var(--ease), opacity .3s var(--ease), visibility 0s linear .3s;
+    }
+    .nav-menu.is-open {
+        visibility: visible; opacity: 1; transform: translateY(0); pointer-events: auto;
+        transition: transform .3s var(--ease), opacity .3s var(--ease), visibility 0s;
+    }
+    .nav-menu li { border-bottom: 1px solid var(--line); }
+    .nav-menu li:last-child { border-bottom: 0; }
+    .nav-menu .nav-link { display: block; padding: 18px 2px; font-size: .9rem; }
+    .nav-menu .nav-link::after { display: none; }
+    .nav-menu .nav-link.cta { margin-top: 16px; text-align: center; padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .nav-toggle-bar, .nav-menu, .nav-scrim { transition: none !important; }
+}
+
 /* ============================================================
    Hero
    ============================================================ */
