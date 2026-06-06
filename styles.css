@@ -478,18 +478,29 @@ body { counter-reset: sec; }
 .material-band {
     position: relative; isolation: isolate;
     min-height: clamp(360px, 56vw, 620px);
-    display: flex; align-items: flex-end;
+    display: flex; align-items: flex-end;   /* altura la define el contenido del overlay */
     overflow: hidden;
     border-block: 1px solid var(--line);
 }
+/* Degradé que cubre TODA la imagen (capa propia, no atada al alto del texto):
+   transparente arriba → oscuro abajo. Va por debajo del texto (z-index 1). */
+.material-band::after {
+    content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: linear-gradient(to top, rgba(10, 10, 9, .92) 0%, rgba(10, 10, 9, .55) 45%, rgba(10, 10, 9, 0) 100%);
+}
 .material-band-img {
-    position: absolute; inset: 0; z-index: -2;
+    /* z-index 0 (no negativo): con isolation en .material-band la foto queda
+       dentro del contexto de la sección y la grilla global (body::before)
+       no se cuela por encima. Con z-index:-2 la imagen se hundía y la
+       textura de fondo se veía sobre la foto. */
+    position: absolute; inset: 0; z-index: 0;
     width: 100%; height: 100%; object-fit: cover;
 }
 .material-band-overlay {
-    position: relative; width: 100%;
+    /* Solo contiene el texto, en flujo (define el alto de la banda como antes).
+       El degradé ahora vive en .material-band::after y cubre toda la imagen. */
+    position: relative; z-index: 2; width: 100%;
     padding-block: clamp(40px, 7vw, 96px);
-    background: linear-gradient(to top, rgba(10, 10, 9, .92) 0%, rgba(10, 10, 9, .55) 45%, rgba(10, 10, 9, 0) 100%);
 }
 .material-kicker {
     font-family: var(--f-mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .22em;
