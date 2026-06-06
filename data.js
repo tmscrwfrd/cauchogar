@@ -156,7 +156,7 @@
 
   /* ---- Catálogo de casos de aplicación (scroll infinito) ---- */
   var CASES = [
-    { titulo: "Geriátricos",        tag: "B2B · Salud",        desc: "Pasillos y habitaciones con amortiguación de impacto para residencias de adultos mayores.", metrica: "Caídas −68%" },
+    { titulo: "Geriátricos",        tag: "B2B · Salud",        desc: "Pasillos y habitaciones con amortiguación de impacto para residencias de adultos mayores.", metrica: "Caídas −68%", img: "assets/img/lifestyle.jpg", alt: "Adulto mayor con bastón y un niño jugando sobre piso de caucho CaucHogar en un patio" },
     { titulo: "Guarderías",          tag: "B2B · Educación",    desc: "Salas de juego seguras donde los más chicos pueden moverse libremente.",                    metrica: "Lesiones −70%" },
     { titulo: "Hogares con niños",   tag: "B2C · Familias",     desc: "Cuartos y áreas de juego protegidas sin renunciar al diseño.",                              metrica: "Premium asequible" },
     { titulo: "Colegios",            tag: "B2B · Educación",    desc: "Patios, gimnasios y zonas de recreo con superficie anti-impacto.",                          metrica: "Norma seguridad" },
@@ -167,7 +167,7 @@
     { titulo: "Pet-friendly",        tag: "B2C · Hogar",        desc: "Espacios para mascotas, fáciles de limpiar y resistentes.",                                 metrica: "Lavable" },
     { titulo: "Espacios creativos",  tag: "B2B · Cultura",      desc: "Talleres y salas de arte donde la seguridad acompaña la actividad.",                        metrica: "Modular" },
     { titulo: "Retail construcción", tag: "B2B · Distribución", desc: "Línea premium para corralones y retailers de materiales.",                                  metrica: "Margen alto" },
-    { titulo: "Terrazas verdes",     tag: "B2C · Exterior",     desc: "Pisos sostenibles para balcones y terrazas urbanas.",                                       metrica: "100% reciclado" }
+    { titulo: "Terrazas verdes",     tag: "B2C · Exterior",     desc: "Pisos sostenibles para balcones y terrazas urbanas.",                                       metrica: "100% reciclado", img: "assets/img/outdoorlounge.jpg", alt: "Lounge exterior con sofá y brasero sobre piso de caucho CaucHogar" }
   ];
 
   window.CAUCHO = {

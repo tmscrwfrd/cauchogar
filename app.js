@@ -364,8 +364,13 @@
 
     function makeCard(c, n) {
       var el = document.createElement("article");
-      el.className = "case-card reveal";
+      el.className = "case-card reveal" + (c.img ? " has-media" : "");
+      var media = c.img
+        ? '<div class="case-media"><img loading="lazy" decoding="async" src="' + c.img +
+          '" alt="' + (c.alt || c.titulo) + '"></div>'
+        : '';
       el.innerHTML =
+        media +
         '<div class="case-top">' +
           '<div><h4>' + c.titulo + '</h4><span class="case-tag">' + c.tag + '</span></div>' +
         '</div>' +
