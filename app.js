@@ -200,11 +200,15 @@
       return M.drivers[0];
     }
 
+    // Variación guardada por cada driver (default 0). Los resultados de abajo
+    // son el escenario COMBINADO de todas estas variaciones a la vez.
+    var deltas = {};
+    M.drivers.forEach(function (dr) { deltas[dr.key] = 0; });
+
     var activeKey = M.drivers[0].key;
     var driver = driverMeta(activeKey);
-    var serie = M.seriesDriver(activeKey);
 
-    // Construir las tabs de drivers
+    // Construir las tabs de drivers (con badge de variación guardada)
     var tabsWrap = document.getElementById("driverTabs");
     if (tabsWrap) {
       M.drivers.forEach(function (dr) {
@@ -214,7 +218,9 @@
         b.setAttribute("role", "tab");
         b.setAttribute("aria-selected", dr.key === activeKey ? "true" : "false");
         b.dataset.key = dr.key;
-        b.innerHTML = '<span class="driver-tab-num">0' + dr.crit + '</span>' + dr.label;
+        b.innerHTML = '<span class="driver-tab-num">0' + dr.crit + '</span>' +
+                      '<span class="driver-tab-label">' + dr.label + '</span>' +
+                      '<span class="driver-tab-delta" data-key="' + dr.key + '"></span>';
         b.addEventListener("click", function () { setDriver(dr.key); });
         tabsWrap.appendChild(b);
       });
@@ -224,7 +230,6 @@
       if (key === activeKey) return;
       activeKey = key;
       driver = driverMeta(key);
-      serie = M.seriesDriver(key);
       if (tabsWrap) {
         [].forEach.call(tabsWrap.children, function (b) {
           var on = b.dataset.key === key;
@@ -232,6 +237,7 @@
           b.setAttribute("aria-selected", on ? "true" : "false");
         });
       }
+      slider.value = deltas[key] || 0;          // restaurar la variación guardada del driver
       if (out.varLabel) out.varLabel.textContent = driver.sliderLabel;
       render();
     }
@@ -242,40 +248,66 @@
       return fmtMoney(v) + "/m²";
     }
 
+    function updateTabDeltas() {
+      if (!tabsWrap) return;
+      [].forEach.call(tabsWrap.querySelectorAll(".driver-tab-delta"), function (el) {
+        var dv = deltas[el.dataset.key] || 0;
+        el.textContent = dv ? ((dv > 0 ? "+" : "") + dv + "%") : "";
+        el.classList.toggle("is-set", !!dv);
+      });
+    }
+
     function render() {
       var d = parseInt(slider.value, 10);
-      var r = M.computeDriver(activeKey, d);
+      deltas[activeKey] = d;                         // guardar la variación del driver activo
+
+      var active = M.computeDriver(activeKey, d);    // valor del driver activo (readout)
+      var comb = M.computeCombined(deltas);          // escenario combinado (todos los drivers)
 
       out.variation.textContent = (d > 0 ? "+" : "") + d + "%";
-      out.value.textContent     = fmtDriverValue(r.value);
-      out.cmu.textContent       = fmtMoney(r.cmu);
-      out.resultado.textContent = fmtM(r.resultadoOp);
-      out.van.textContent       = fmtM(r.van);
-      out.tir.textContent       = (r.tir === null) ? "n/a" : r.tir.toFixed(1) + "%";
-      if (out.breakeven) out.breakeven.textContent = M.breakeven(activeKey);
+      out.value.textContent     = fmtDriverValue(active.value);
+      out.cmu.textContent       = fmtMoney(comb.cmu);
+      out.resultado.textContent = fmtM(comb.resultadoOp);
+      out.van.textContent       = fmtM(comb.van);
+      out.tir.textContent       = (comb.tir === null) ? "n/a" : comb.tir.toFixed(1) + "%";
+      if (out.breakeven) out.breakeven.textContent = M.breakevenCombined(activeKey, deltas);
       if (out.tasaCorte) {
-        var ok = (r.tir !== null && r.tir >= M.BASE.corte);
-        var tirTxt = (r.tir === null) ? "n/a" : Math.round(r.tir) + "%";
+        var ok = (comb.tir !== null && comb.tir >= M.BASE.corte);
+        var tirTxt = (comb.tir === null) ? "n/a" : Math.round(comb.tir) + "%";
         out.tasaCorte.textContent = "15% (TIR " + tirTxt + (ok ? " > " : " < ") + "15%)";
         toggleNeg(out.tasaCorte, !ok);
       }
 
-      toggleNeg(out.resultado, r.resultadoOp < 0);
-      toggleNeg(out.van, r.van < 0);
-      toggleNeg(out.tir, r.tir === null || r.tir < M.BASE.corte);
-      toggleNeg(out.cmu, r.cmu < 0);
+      toggleNeg(out.resultado, comb.resultadoOp < 0);
+      toggleNeg(out.van, comb.van < 0);
+      toggleNeg(out.tir, comb.tir === null || comb.tir < M.BASE.corte);
+      toggleNeg(out.cmu, comb.cmu < 0);
 
+      var serie = M.seriesCombined(activeKey, deltas);
       drawSpark(charts.cmu,       serie, "cmu",         d, "#cdff00");
       drawSpark(charts.resultado, serie, "resultadoOp", d, "#cdff00");
       drawSpark(charts.van,       serie, "van",         d, "#cdff00");
       drawSpark(charts.tir,       serie, "tir",         d, "#cdff00");
+
+      updateTabDeltas();
     }
 
     function toggleNeg(el, isNeg) {
       if (el) el.classList.toggle("is-negative", !!isNeg);
     }
 
+    // Reiniciar todos los drivers a 0
+    var resetBtn = document.getElementById("driverReset");
+    if (resetBtn) {
+      resetBtn.addEventListener("click", function () {
+        M.drivers.forEach(function (dr) { deltas[dr.key] = 0; });
+        slider.value = 0;
+        render();
+      });
+    }
+
     if (out.varLabel) out.varLabel.textContent = driver.sliderLabel;
+    slider.value = deltas[activeKey] || 0;
     slider.addEventListener("input", render);
     window.addEventListener("resize", debounce(render, 120));
     renderTornado();

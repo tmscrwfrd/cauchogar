@@ -139,6 +139,87 @@
       : "VAN negativo en todo el rango";
   }
 
+  /* ============================================================
+     Escenario COMBINADO (todos los drivers a la vez)
+     Superposición de primer orden: combinado = base + Σ (driver_i − base).
+     Cada driver aporta su impacto individual (su curva/analítica real).
+     Exacto cuando hay un solo driver ≠ 0; aproxima interacciones cuando
+     hay varios. CVU y MP se solapan parcialmente (MP es parte del CVU),
+     así que moverlos juntos suma ambos impactos.
+     ============================================================ */
+  var METRIC_BASE = { cmu: BASE.cmu, resultadoOp: BASE.resultadoOp, van: BASE.van, tir: BASE.tir };
+
+  function deltaOf(deltas, key) { return (deltas && deltas[key]) ? deltas[key] : 0; }
+
+  /* Resultados combinados para un mapa de variaciones { key: pct, ... } */
+  function computeCombined(deltas) {
+    var out = {
+      cmu: METRIC_BASE.cmu, resultadoOp: METRIC_BASE.resultadoOp,
+      van: METRIC_BASE.van, tir: METRIC_BASE.tir
+    };
+    var tirNull = false;
+    for (var i = 0; i < DRIVERS.length; i++) {
+      var key = DRIVERS[i].key, pct = deltaOf(deltas, key);
+      if (!pct) continue;
+      var r = computeDriver(key, pct);
+      out.cmu         += r.cmu - METRIC_BASE.cmu;
+      out.resultadoOp += r.resultadoOp - METRIC_BASE.resultadoOp;
+      out.van         += r.van - METRIC_BASE.van;
+      if (r.tir === null) tirNull = true;
+      else out.tir    += r.tir - METRIC_BASE.tir;
+    }
+    if (tirNull) out.tir = null;   // TIR indefinida si algún driver activo cae en zona n/a
+    return out;
+  }
+
+  /* Serie -25..+25 del driver activo con los demás fijos en sus valores guardados.
+     Por superposición, equivale a la curva del driver activo desplazada por el
+     offset constante de los demás. */
+  function seriesCombined(activeKey, deltas) {
+    var off = { cmu: 0, resultadoOp: 0, van: 0, tir: 0 }, tirNullOff = false;
+    for (var i = 0; i < DRIVERS.length; i++) {
+      var key = DRIVERS[i].key;
+      if (key === activeKey) continue;
+      var pct = deltaOf(deltas, key);
+      if (!pct) continue;
+      var r = computeDriver(key, pct);
+      off.cmu += r.cmu - METRIC_BASE.cmu;
+      off.resultadoOp += r.resultadoOp - METRIC_BASE.resultadoOp;
+      off.van += r.van - METRIC_BASE.van;
+      if (r.tir === null) tirNullOff = true;
+      else off.tir += r.tir - METRIC_BASE.tir;
+    }
+    var arr = [];
+    for (var v = -25; v <= 25; v++) {
+      var c = computeDriver(activeKey, v);
+      arr.push({
+        deltaPct: v,
+        cmu: c.cmu + off.cmu,
+        resultadoOp: c.resultadoOp + off.resultadoOp,
+        van: c.van + off.van,
+        tir: (c.tir === null || tirNullOff) ? null : c.tir + off.tir
+      });
+    }
+    return arr;
+  }
+
+  /* Punto de quiebre (VAN < 0) del driver activo dentro del escenario combinado */
+  function breakevenCombined(activeKey, deltas) {
+    var s = seriesCombined(activeKey, deltas);
+    for (var i = 1; i < s.length; i++) {
+      var a = s[i - 1].van, b = s[i].van;
+      if (a === null || b === null) continue;
+      if ((a >= 0 && b < 0) || (a < 0 && b >= 0)) {
+        var lo = Math.min(s[i - 1].deltaPct, s[i].deltaPct);
+        var hi = Math.max(s[i - 1].deltaPct, s[i].deltaPct);
+        return "Entre " + lo + "% y " + hi + "%";
+      }
+    }
+    return s[0].van >= 0 && s[s.length - 1].van >= 0
+      ? "VAN positivo en todo el rango"
+      : "VAN negativo en todo el rango";
+  }
+
   /* Tornado: amplitud de VAN (favorable vs adverso) por driver */
   var TORNADO = DRIVERS.map(function (dr) {
     var hi = Math.max.apply(null, dr.van);
@@ -176,6 +257,9 @@
     computeDriver: computeDriver,
     seriesDriver: seriesDriver,
     breakeven: breakeven,
+    computeCombined: computeCombined,
+    seriesCombined: seriesCombined,
+    breakevenCombined: breakevenCombined,
     tornado: TORNADO,
     cases: CASES
   };
