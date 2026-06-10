@@ -533,6 +533,35 @@ body { counter-reset: sec; }
     .tornado-track { grid-area: track; }
 }
 
+/* ---- Dashboard compacto en mobile: que entren tabs + slider + resultados ---- */
+@media (max-width: 640px) {
+    #sensibilidad .section-title { font-size: clamp(2rem, 9vw, 2.6rem); margin-bottom: 10px; }
+    #sensibilidad .section-title::before { margin-bottom: 12px; }
+    #sensibilidad .section-subtitle { margin-bottom: 16px; }
+
+    .driver-tabs { gap: 6px; margin-bottom: 10px; }
+    .driver-tab { padding: 7px 10px; font-size: .66rem; gap: 6px; }
+    .driver-tab-num { font-size: .6rem; }
+    .driver-tab-delta { font-size: .62rem; }
+
+    .sensitivity-toolbar { margin-bottom: 12px; gap: 8px 12px; }
+    .combined-note { font-size: .64rem; }
+    .driver-reset { padding: 7px 12px; font-size: .64rem; }
+
+    .sensitivity-controls { margin-bottom: 16px; }
+    .slider-container { padding: 16px 14px; }
+    .slider-header { margin-bottom: 14px; gap: 10px; }
+    .slider-header label { font-size: .7rem; letter-spacing: .1em; }
+    #driverValue { font-size: .76rem; }
+    .slider-labels { margin-top: 10px; font-size: .66rem; }
+
+    .sensitivity-results { gap: 8px; }
+    .result-card { padding: 12px 12px; }
+    .result-card h4 { font-size: .6rem; margin-bottom: 6px; }
+    .result-value { font-size: 1.25rem; }
+    .mini-chart { height: 30px; margin-top: 8px; }
+}
+
 /* ============================================================
    Market opportunity
    ============================================================ */
@@ -555,10 +584,13 @@ body { counter-reset: sec; }
    ============================================================ */
 .material-band {
     position: relative; isolation: isolate;
-    min-height: clamp(360px, 56vw, 620px);
-    display: flex; align-items: flex-end;   /* altura la define el contenido del overlay */
+    /* Apertura full-screen: arranca debajo del nav (no se superpone) y la
+       imagen llega hasta abajo de la pantalla. */
+    margin-top: var(--nav-h);
+    min-height: calc(100svh - var(--nav-h));
+    display: flex; align-items: flex-end;
     overflow: hidden;
-    border-block: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
 }
 /* Degradé que cubre TODA la imagen (capa propia, no atada al alto del texto):
    transparente arriba → oscuro abajo. Va por debajo del texto (z-index 1). */
