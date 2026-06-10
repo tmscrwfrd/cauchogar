@@ -556,8 +556,11 @@ body { counter-reset: sec; }
 
     .sensitivity-controls { margin-bottom: 16px; }
     .slider-container { padding: 16px 14px; }
-    .slider-header { margin-bottom: 14px; gap: 10px; }
+    /* Apilado: label/variación arriba, valor abajo. Así el ancho del valor (que
+       cambia con el slider) no reacomoda al label y no hay saltos de línea. */
+    .slider-header { flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 14px; }
     .slider-header label { font-size: .7rem; letter-spacing: .1em; }
+    #driverVariation { min-width: 4ch; }   /* ancho fijo: "0%" ocupa lo mismo que "-25%" */
     #driverValue { font-size: .76rem; }
     .slider-labels { margin-top: 10px; font-size: .66rem; }
 
