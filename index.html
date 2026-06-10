@@ -229,23 +229,23 @@
     <section id="sensibilidad" class="sensitivity-dashboard">
         <div class="container">
             <h2 class="section-title">Dashboard de Sensibilidad</h2>
-            <p class="section-subtitle">Cinco drivers, un mismo motor de flujo de fondos a 10 años. Cada solapa recuerda su propia variación y los resultados de abajo muestran el escenario combinado: movés varios drivers a la vez y ves el efecto conjunto sobre CMU, resultado operativo, VAN y TIR.</p>
+            <p class="section-subtitle">Cinco drivers, un flujo de fondos a 10 años.</p>
 
             <div class="driver-tabs" id="driverTabs" role="tablist"></div>
 
             <div class="sensitivity-toolbar">
-                <p class="combined-note">Resultados = escenario combinado de todos los drivers (estimación de primer orden).</p>
+                <p class="combined-note">Resultados = escenario combinado de todos los drivers.</p>
                 <button type="button" id="driverReset" class="driver-reset">Reiniciar drivers</button>
             </div>
 
             <div class="sensitivity-controls">
                 <div class="slider-container">
                     <div class="slider-header">
-                        <label id="driverVarLabel">Variación de Precio</label>
-                        <div class="slider-value">
+                        <div class="slider-label-group">
+                            <label id="driverVarLabel">Variación de Precio</label>
                             <span id="driverVariation">0%</span>
-                            <span id="driverValue">$58.734</span>
                         </div>
+                        <span id="driverValue">$58.734</span>
                     </div>
                     <input type="range" id="driverSlider" min="-25" max="25" value="0" step="1" class="slider" autocomplete="off">
                     <div class="slider-labels">

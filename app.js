@@ -412,13 +412,17 @@
       var cv = serie[idx][key];
       if (cv !== null && !isNaN(cv)) {
         var cx = x(idx), cy = y(cv);
-        ctx.beginPath();
-        ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+        ctx.lineJoin = "miter";
+        // Rombo tipo baldosa: marco lima con borde claro y centro negro
+        diamond(ctx, cx, cy, 5.5);
         ctx.fillStyle = color;
         ctx.fill();
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 1.5;
         ctx.strokeStyle = "#f2f2ec";
         ctx.stroke();
+        diamond(ctx, cx, cy, 2.6);   // rombo interior negro
+        ctx.fillStyle = "#0a0a09";
+        ctx.fill();
       }
     }
   }
@@ -509,6 +513,14 @@
       clearTimeout(t);
       t = setTimeout(function () { fn.apply(ctx, args); }, wait);
     };
+  }
+  function diamond(ctx, cx, cy, r) {
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - r);
+    ctx.lineTo(cx + r, cy);
+    ctx.lineTo(cx, cy + r);
+    ctx.lineTo(cx - r, cy);
+    ctx.closePath();
   }
   function hexToRgba(hex, a) {
     var h = hex.replace("#", "");

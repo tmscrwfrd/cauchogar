@@ -421,9 +421,9 @@ body { counter-reset: sec; }
 .slider-container { border: 1px solid var(--line); padding: clamp(24px, 3vw, 36px); background: var(--bg-soft); }
 .slider-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 22px; }
 .slider-header label { font-family: var(--f-mono); text-transform: uppercase; letter-spacing: .14em; font-size: .8rem; color: var(--ink-dim); }
-.slider-value { text-align: right; }
-.slider-value #priceVariation { font-family: var(--f-display); font-size: clamp(2rem, 4vw, 3rem); line-height: 1; color: var(--lime); display: block; }
-.slider-value #priceValue { font-family: var(--f-mono); font-size: .82rem; color: var(--ink-dim); }
+.slider-label-group { display: inline-flex; align-items: baseline; gap: 10px; }
+#driverVariation { font-family: var(--f-mono); font-weight: 700; font-size: .8rem; letter-spacing: .08em; color: var(--lime); }
+#driverValue { font-family: var(--f-mono); font-size: .82rem; color: var(--ink-dim); }
 
 .slider {
     -webkit-appearance: none; appearance: none;
@@ -431,11 +431,21 @@ body { counter-reset: sec; }
 }
 .slider::-webkit-slider-thumb {
     -webkit-appearance: none; appearance: none;
-    width: 22px; height: 22px; border-radius: 0; background: var(--lime);
-    border: none; cursor: pointer; transition: transform .15s; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    box-sizing: content-box;
+    width: 10px; height: 10px; border-radius: 0;
+    background: #0a0a09;                 /* centro negro */
+    border: 3px solid var(--lime);       /* marco lima */
+    box-shadow: 0 0 0 1.5px #f2f2ec;     /* borde claro exterior */
+    cursor: pointer; transition: transform .15s;
+    transform: rotate(45deg);            /* cuadrado → rombo hueco, estilo baldosa */
 }
-.slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
-.slider::-moz-range-thumb { width: 22px; height: 22px; border-radius: 0; background: var(--lime); border: none; cursor: pointer; }
+.slider::-webkit-slider-thumb:hover { transform: rotate(45deg) scale(1.15); }
+.slider::-moz-range-thumb {
+    box-sizing: content-box;
+    width: 10px; height: 10px; border-radius: 0;
+    background: #0a0a09; border: 3px solid var(--lime);
+    box-shadow: 0 0 0 1.5px #f2f2ec; cursor: pointer; transform: rotate(45deg);
+}
 .slider-labels { display: flex; justify-content: space-between; margin-top: 14px; font-family: var(--f-mono); font-size: .72rem; color: var(--ink-faint); letter-spacing: .08em; }
 
 .sensitivity-results { display: grid; gap: 14px; grid-template-columns: 1fr 1fr; }
@@ -496,7 +506,7 @@ body { counter-reset: sec; }
 .combined-note { font-family: var(--f-mono); font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-faint); margin: 0; }
 .driver-reset {
     font-family: var(--f-mono); font-size: .7rem; text-transform: uppercase; letter-spacing: .1em;
-    color: var(--ink-dim); background: transparent; border: 1px solid var(--line);
+    color: var(--lime); background: transparent; border: 1px solid var(--line);
     padding: 8px 14px; cursor: pointer; transition: color .2s, border-color .2s;
 }
 .driver-reset:hover { color: var(--lime); border-color: var(--lime); }
