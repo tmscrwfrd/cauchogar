@@ -119,6 +119,20 @@ body { counter-reset: sec; }
     margin-bottom: clamp(40px, 6vw, 72px);
 }
 
+/* Evita palabras huérfanas en la última línea de los párrafos de texto */
+.hero-subtitle,
+.section-subtitle,
+.material-desc,
+.tornado-sub,
+.tornado-note,
+.risk-description,
+.cta-content > p,
+.card p,
+.opportunity-card p,
+.case-card p {
+    text-wrap: pretty;
+}
+
 /* Eyebrow reutilizable */
 .eyebrow {
     font-family: var(--f-mono);
