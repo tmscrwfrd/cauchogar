@@ -29,7 +29,7 @@
     --f-mono:    "Space Mono", ui-monospace, monospace;
 
     /* Shape / rhythm */
-    --maxw: 1280px;
+    --maxw: 1600px;
     --pad:  clamp(20px, 5vw, 64px);
     --nav-h: 76px;
     --ease: cubic-bezier(.16, .84, .44, 1);
@@ -540,7 +540,7 @@ body { counter-reset: sec; }
 .tornado-bar { position: absolute; top: 3px; bottom: 3px; background: var(--lime); }
 .tornado-loss { position: absolute; top: 3px; bottom: 3px; background: var(--danger); }
 .tornado-amp { font-family: var(--f-mono); font-size: .82rem; color: var(--ink); text-align: right; white-space: nowrap; }
-.tornado-note { color: var(--ink-dim); font-size: .9rem; max-width: 70ch; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+.tornado-note { color: var(--ink-dim); font-size: .9rem; max-width: 114ch; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); text-wrap: balance; }
 @media (max-width: 600px) {
     .tornado-row { grid-template-columns: 22px 1fr auto; grid-template-areas: "rank name amp" "track track track"; row-gap: 6px; }
     .tornado-rank { grid-area: rank; }
@@ -646,7 +646,7 @@ body { counter-reset: sec; }
     font-size: clamp(2.2rem, 6.5vw, 5rem); line-height: .9; letter-spacing: -.01em;
     margin-bottom: clamp(14px, 2vw, 22px); text-wrap: balance;
 }
-.material-desc { color: var(--ink-dim); max-width: 46ch; font-size: clamp(1rem, 1.5vw, 1.2rem); }
+.material-desc { color: var(--ink-dim); max-width: 64ch; font-size: clamp(1rem, 1.5vw, 1.2rem); text-wrap: balance; }
 
 .use-cases { background: var(--bg-soft); }
 
@@ -739,7 +739,7 @@ body { counter-reset: sec; }
 .button-primary:hover { transform: translateY(-3px); }
 .button-secondary { background: transparent; color: #000; border: 1px solid #000; }
 .button-secondary:hover { background: #000; color: var(--lime); }
-.cta-info { font-family: var(--f-mono); font-size: .8rem; letter-spacing: .06em; opacity: .7; }
+.cta-info { font-family: var(--f-mono); font-size: .8rem; letter-spacing: .06em; opacity: .7; width: max-content; max-width: 38ch; text-wrap: balance; }
 
 /* ============================================================
    Footer
