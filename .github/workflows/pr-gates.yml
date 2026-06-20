@@ -1,0 +1,46 @@
+name: PR gates
+
+# Verifica que cada PR hacia main tenga un assignee y el label "approved".
+# El requisito de reviewer se configura aparte con branch protection nativa.
+# Para que bloquee el merge, marcá este check como "required" en la
+# protección de la rama main (Settings -> Branches).
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+      - labeled
+      - unlabeled
+      - assigned
+      - unassigned
+
+permissions:
+  contents: read
+
+jobs:
+  require-assignee-and-label:
+    name: assignee + approved label
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check assignee and "approved" label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const assignees = (pr.assignees || []).map(a => a.login);
+            const labels = (pr.labels || []).map(l => l.name);
+            const errors = [];
+            if (assignees.length === 0) {
+              errors.push('Falta asignar al menos un assignee al PR.');
+            }
+            if (!labels.includes('approved')) {
+              errors.push('Falta el label "approved".');
+            }
+            if (errors.length > 0) {
+              core.setFailed(errors.join('\n'));
+            } else {
+              core.info(`OK — assignee(s): ${assignees.join(', ')}; labels: ${labels.join(', ')}`);
+            }
