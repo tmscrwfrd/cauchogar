@@ -15,6 +15,7 @@
   document.addEventListener("DOMContentLoaded", function () {
     initNavbar();
     initNavToggle();
+    initLogoHome();
     initReveal();
     initCounters();
     initSensitivity();
@@ -55,6 +56,19 @@
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
+  }
+
+  /* ============================================================
+     Logo → vuelve al tope de la página
+     ============================================================ */
+  function initLogoHome() {
+    var logo = document.querySelector(".logo");
+    if (!logo) return;
+    logo.addEventListener("click", function (e) {
+      e.preventDefault();
+      var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+    });
   }
 
   /* ============================================================
