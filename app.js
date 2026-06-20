@@ -38,16 +38,20 @@
     if (!nav) return;
     var toggle = document.getElementById("navToggle");
     var lastY = Math.max(0, window.scrollY);
+    var pointerAtTop = false;     // mouse dentro de la franja superior
+    var revealedByHover = false;  // el navbar se mostró por hover (no por scroll)
+    function menuIsOpen() { return toggle && toggle.getAttribute("aria-expanded") === "true"; }
+
     var onScroll = function () {
       var y = Math.max(0, window.scrollY);
       nav.classList.toggle("scrolled", y > 8);
       var dy = y - lastY;
       if (Math.abs(dy) > 4) {                 // ignora micro-scroll para no parpadear
-        var menuOpen = toggle && toggle.getAttribute("aria-expanded") === "true";
-        if (!menuOpen && dy > 0 && y > nav.offsetHeight) {
-          nav.classList.add("nav-hidden");    // bajando → ocultar
+        if (!menuIsOpen() && dy > 0 && y > nav.offsetHeight && !pointerAtTop) {
+          nav.classList.add("nav-hidden");    // bajando → ocultar (salvo que el mouse esté en el borde)
         } else if (dy < 0 || y <= nav.offsetHeight) {
           nav.classList.remove("nav-hidden");  // subiendo o cerca del tope → mostrar
+          revealedByHover = false;             // mostrado legítimamente por scroll, no por hover
         }
         // el rombo del logo se inclina a 45° al bajar y vuelve a 90° al subir
         nav.classList.toggle("logo-tilt", dy > 0);
@@ -56,6 +60,24 @@
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
+
+    // Desktop: el navbar reaparece al llevar el mouse a la franja superior y se vuelve a ocultar al salir
+    if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+      window.addEventListener("mousemove", function (e) {
+        var atTop = e.clientY <= nav.offsetHeight;
+        if (atTop === pointerAtTop) return;    // sólo al cruzar el límite de la franja
+        pointerAtTop = atTop;
+        if (atTop) {
+          if (nav.classList.contains("nav-hidden")) {
+            revealedByHover = true;
+            nav.classList.remove("nav-hidden");
+          }
+        } else if (revealedByHover && !menuIsOpen()) {
+          revealedByHover = false;
+          nav.classList.add("nav-hidden");     // se fue del borde → ocultar lo que reveló el hover
+        }
+      }, { passive: true });
+    }
   }
 
   /* ============================================================
