@@ -48,6 +48,8 @@
         } else if (dy < 0 || y <= nav.offsetHeight) {
           nav.classList.remove("nav-hidden");  // subiendo o cerca del tope → mostrar
         }
+        // el rombo del logo se inclina a 45° al bajar y vuelve a 90° al subir
+        nav.classList.toggle("logo-tilt", dy > 0);
         lastY = y;
       }
     };
