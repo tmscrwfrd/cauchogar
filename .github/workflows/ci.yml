@@ -9,6 +9,11 @@ on:
 permissions:
   contents: read
 
+# Cancela runs en curso del mismo PR/rama cuando llega un push nuevo
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     name: validate
