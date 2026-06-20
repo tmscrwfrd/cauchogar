@@ -171,8 +171,22 @@ body { counter-reset: sec; }
     display: flex; align-items: center; justify-content: space-between;
 }
 .logo { display: flex; align-items: center; gap: 10px; }
-.logo-icon { font-size: 1.2rem; filter: grayscale(.2); }
-.logo-text { font-family: var(--f-display); text-transform: uppercase; letter-spacing: .02em; font-size: 1.4rem; color: var(--lime-deep); }
+/* Ícono de marca: mismo rombo hueco que el thumb del slider (cuadrado rotado, estilo baldosa) */
+.logo-mark {
+    flex: 0 0 auto;
+    display: block;
+    box-sizing: content-box;
+    width: 10px; height: 10px;
+    background: var(--bg);
+    border: 3px solid var(--lime);
+    box-shadow: 0 0 0 1.5px #f2f2ec;
+    transform: rotate(90deg);
+    margin: 0 4px;
+    transition: transform .45s var(--ease);
+}
+/* Al scrollear hacia abajo el rombo se inclina a 45° (estilo baldosa); al subir vuelve a 90° */
+.navbar.logo-tilt .logo-mark { transform: rotate(45deg); }
+.logo-text { font-family: var(--f-display); text-transform: uppercase; letter-spacing: .02em; font-size: 1.4rem; color: var(--lime); }
 .nav-menu { display: none; align-items: center; gap: 4px; }
 @media (min-width: 860px) { .nav-menu { display: flex; } }
 .nav-link {
@@ -777,4 +791,5 @@ body { counter-reset: sec; }
     .hero-title, .hero-subtitle, .hero-stats { opacity: 1; animation: none; }
     .marquee-track { animation: none; }
     .navbar { transition: none; }
+    .logo-mark { transition: none; }
 }
