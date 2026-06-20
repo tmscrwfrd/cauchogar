@@ -9,3 +9,8 @@ updates:
       prefix: ci
     labels:
       - dependencies
+    # Junta todos los bumps de Actions en una sola PR en vez de una por Action
+    groups:
+      github-actions:
+        patterns:
+          - "*"
