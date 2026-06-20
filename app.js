@@ -18,7 +18,7 @@
     initReveal();
     initCounters();
     initSensitivity();
-    initInfiniteScroll();
+    initCases();
   });
 
   /* ---------- Helpers de formato ---------- */
@@ -35,8 +35,21 @@
   function initNavbar() {
     var nav = document.querySelector(".navbar");
     if (!nav) return;
+    var toggle = document.getElementById("navToggle");
+    var lastY = Math.max(0, window.scrollY);
     var onScroll = function () {
-      nav.classList.toggle("scrolled", window.scrollY > 8);
+      var y = Math.max(0, window.scrollY);
+      nav.classList.toggle("scrolled", y > 8);
+      var dy = y - lastY;
+      if (Math.abs(dy) > 4) {                 // ignora micro-scroll para no parpadear
+        var menuOpen = toggle && toggle.getAttribute("aria-expanded") === "true";
+        if (!menuOpen && dy > 0 && y > nav.offsetHeight) {
+          nav.classList.add("nav-hidden");    // bajando → ocultar
+        } else if (dy < 0 || y <= nav.offsetHeight) {
+          nav.classList.remove("nav-hidden");  // subiendo o cerca del tope → mostrar
+        }
+        lastY = y;
+      }
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -49,12 +62,14 @@
     var btn = document.getElementById("navToggle");
     var menu = document.getElementById("navMenu");
     var scrim = document.getElementById("navScrim");
+    var navEl = document.querySelector(".navbar");
     if (!btn || !menu) return;
 
     function setOpen(open) {
       btn.setAttribute("aria-expanded", open ? "true" : "false");
       btn.setAttribute("aria-label", open ? "Cerrar menú" : "Abrir menú");
       menu.classList.toggle("is-open", open);
+      if (open && navEl) navEl.classList.remove("nav-hidden"); // el nav siempre visible con el menú abierto
       if (scrim) {
         if (open) { scrim.hidden = false; requestAnimationFrame(function () { scrim.classList.add("is-open"); }); }
         else { scrim.classList.remove("is-open"); }
@@ -117,19 +132,6 @@
     }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
 
     nodes.forEach(function (el) { io.observe(el); });
-  }
-
-  /* Observador reutilizable para nodos agregados dinámicamente */
-  function revealObserver() {
-    if (reduceMotion || !("IntersectionObserver" in window)) return null;
-    return new IntersectionObserver(function (entries, obs) {
-      entries.forEach(function (e) {
-        if (e.isIntersecting) {
-          e.target.classList.add("is-visible");
-          obs.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
   }
 
   /* ============================================================
@@ -428,26 +430,18 @@
   }
 
   /* ============================================================
-     Scroll infinito — casos de aplicación
+     Carrusel horizontal — casos de aplicación
      ============================================================ */
-  function initInfiniteScroll() {
-    var grid = document.getElementById("casesGrid");
-    var sentinel = document.getElementById("casesSentinel");
-    var loader = document.getElementById("casesLoader");
-    if (!grid || !sentinel || !M) return;
+  function initCases() {
+    var viewport = document.getElementById("casesViewport");
+    var track = document.getElementById("casesGrid");
+    if (!viewport || !track || !M) return;
 
     var pool = M.cases;
-    var perBatch = 6;
-    var index = 0;
-    // Se carga el catálogo completo de casos únicos y luego se detiene, para que
-    // el usuario pueda seguir hasta "Factores de Riesgo" (issue #1).
-    var maxCards = pool.length;
-    var loading = false;
-    var ro = revealObserver();
 
-    function makeCard(c, n) {
+    function makeCard(c) {
       var el = document.createElement("article");
-      el.className = "case-card reveal" + (c.img ? " has-media" : "");
+      el.className = "case-card is-visible" + (c.img ? " has-media" : "");
       var media = c.img
         ? '<div class="case-media"><img loading="lazy" decoding="async" src="' + c.img +
           '" alt="' + (c.alt || c.titulo) + '"></div>'
@@ -459,47 +453,151 @@
         '</div>' +
         '<p>' + c.desc + '</p>' +
         '<div class="case-metric"><span>Impacto</span><strong>' + c.metrica + '</strong></div>';
-      if (ro) ro.observe(el); else el.classList.add("is-visible");
       return el;
     }
 
-    function loadBatch() {
-      if (loading || index >= maxCards) return;
-      loading = true;
-      if (loader) loader.hidden = false;
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < pool.length; i++) frag.appendChild(makeCard(pool[i]));
+    track.appendChild(frag);
 
-      // Pequeño delay para que el loader sea perceptible (UX de feed)
-      setTimeout(function () {
-        var frag = document.createDocumentFragment();
-        for (var i = 0; i < perBatch && index < maxCards; i++, index++) {
-          var c = pool[index % pool.length];
-          frag.appendChild(makeCard(c, index));
-        }
-        grid.appendChild(frag);
-        loading = false;
-        if (index >= maxCards && loader) {
-          loader.innerHTML = '<p style="color:var(--c-text-soft)">Mostrando todos los casos de aplicación.</p>';
-        } else if (loader) {
-          loader.hidden = true;
-        }
-      }, reduceMotion ? 0 : 350);
+    /* ---- Motor del carrusel: arrastre + inercia + rebote + anclado ----
+       Trabajamos con transform (no scroll nativo) para controlar la física:
+       offset = px desplazados a la derecha; translate = -offset. */
+    var DRAG = 1;            // sensibilidad del arrastre (1:1)
+    var FRICTION = 0.94;     // decaimiento de la inercia por frame
+    var RUBBER = 0.32;       // resistencia al estirar más allá de un extremo
+    var EDGE_STIFF = 0.10;   // fuerza del rebote en los bordes
+    var EDGE_DAMP = 0.72;    // amortiguación del rebote
+    var SNAP_V = 1.2;        // umbral de velocidad para empezar a anclar
+    var SNAP_STIFF = 0.14;   // fuerza del anclado a la card
+    var SNAP_DAMP = 0.74;    // amortiguación del anclado
+    var MAX_V = 55;          // tope de velocidad al soltar
+
+    var offset = 0, velocity = 0, max = 0, raf = null;
+    var dragging = false, startX = 0, startOffset = 0, lastX = 0, moved = false;
+    var nudged = false;
+
+    function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+    function measure() { max = Math.max(0, track.scrollWidth - viewport.clientWidth); }
+    function apply() { track.style.transform = "translate3d(" + (-offset) + "px,0,0)"; }
+    function step() {
+      var card = track.querySelector(".case-card");
+      if (!card) return viewport.clientWidth;
+      var cs = getComputedStyle(track);
+      var gap = parseFloat(cs.columnGap || cs.gap) || 0;
+      return card.getBoundingClientRect().width + gap;
+    }
+    function startLoop() { if (!raf) raf = requestAnimationFrame(tick); }
+    function stopLoop() { if (raf) { cancelAnimationFrame(raf); raf = null; } }
+
+    function tick() {
+      if (offset < 0) {                              // rebote en el borde izquierdo
+        velocity += (0 - offset) * EDGE_STIFF;
+        velocity *= EDGE_DAMP;
+        offset += velocity;
+        if (Math.abs(offset) < 0.4 && Math.abs(velocity) < 0.4) { offset = 0; velocity = 0; apply(); raf = null; return; }
+      } else if (offset > max) {                     // rebote en la última card
+        velocity += (max - offset) * EDGE_STIFF;
+        velocity *= EDGE_DAMP;
+        offset += velocity;
+        if (Math.abs(offset - max) < 0.4 && Math.abs(velocity) < 0.4) { offset = max; velocity = 0; apply(); raf = null; return; }
+      } else if (Math.abs(velocity) > SNAP_V) {      // inercia
+        offset += velocity;
+        velocity *= FRICTION;
+      } else {                                       // anclar a la card más cercana
+        var target = clamp(Math.round(offset / step()) * step(), 0, max);
+        velocity += (target - offset) * SNAP_STIFF;
+        velocity *= SNAP_DAMP;
+        offset += velocity;
+        if (Math.abs(target - offset) < 0.4 && Math.abs(velocity) < 0.4) { offset = target; velocity = 0; apply(); raf = null; return; }
+      }
+      apply();
+      raf = requestAnimationFrame(tick);
     }
 
-    loadBatch(); // primer lote
+    // --- Arrastre con mouse / touch / lápiz (Pointer Events unificados) ---
+    viewport.addEventListener("pointerdown", function (e) {
+      if (e.button && e.button !== 0) return;
+      stopLoop();
+      dragging = true; moved = false; velocity = 0;
+      startX = lastX = e.clientX;
+      startOffset = offset;
+      measure();
+      viewport.classList.add("is-dragging");
+      try { viewport.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    viewport.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      var dx = e.clientX - startX;
+      if (Math.abs(dx) > 3) moved = true;
+      velocity = -(e.clientX - lastX);   // px/frame aprox. para la inercia
+      lastX = e.clientX;
+      var raw = startOffset - dx * DRAG;
+      if (raw < 0) offset = raw * RUBBER;               // resistencia elástica
+      else if (raw > max) offset = max + (raw - max) * RUBBER;
+      else offset = raw;
+      apply();
+    });
+    function release(e) {
+      if (!dragging) return;
+      dragging = false;
+      viewport.classList.remove("is-dragging");
+      try { viewport.releasePointerCapture(e.pointerId); } catch (err) {}
+      if (reduceMotion) {
+        offset = clamp(Math.round(offset / step()) * step(), 0, max);
+        apply();
+        return;
+      }
+      velocity = clamp(velocity, -MAX_V, MAX_V);
+      startLoop();
+    }
+    viewport.addEventListener("pointerup", release);
+    viewport.addEventListener("pointercancel", release);
+    // Si hubo arrastre, cancela el click fantasma dentro de la card
+    viewport.addEventListener("click", function (e) {
+      if (moved) { e.preventDefault(); e.stopPropagation(); }
+    }, true);
+    viewport.addEventListener("dragstart", function (e) { e.preventDefault(); });
+
+    // --- Teclado (accesibilidad): flechas mueven ~una card ---
+    viewport.addEventListener("keydown", function (e) {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      e.preventDefault();
+      measure();
+      var dir = e.key === "ArrowRight" ? 1 : -1;
+      stopLoop();
+      if (reduceMotion) {
+        offset = clamp(Math.round(offset / step()) * step() + dir * step(), 0, max);
+        apply();
+        return;
+      }
+      velocity = dir * step() * (1 - FRICTION) * 1.05; // inercia de ~una card
+      startLoop();
+    });
+
+    // --- "Peek" al entrar en viewport: insinúa que hay más cards ---
+    function nudge() {
+      if (nudged || dragging || reduceMotion) return;
+      measure();
+      if (max <= 0) return;
+      nudged = true;
+      velocity = 5.5;          // empuje suave → asoma la card siguiente y vuelve
+      startLoop();
+    }
+
+    function relayout() {
+      measure();
+      if (!dragging && !raf) { offset = clamp(offset, 0, max); apply(); }
+    }
+
+    requestAnimationFrame(function () { measure(); apply(); });
+    window.addEventListener("resize", debounce(relayout, 120));
 
     if ("IntersectionObserver" in window) {
       var io = new IntersectionObserver(function (entries) {
-        if (!entries[0].isIntersecting) return;
-        loadBatch();
-        if (index >= maxCards) io.disconnect(); // ya no hay más casos que cargar
-      }, { rootMargin: "200px" });
-      io.observe(sentinel);
-    } else {
-      // Fallback: botón implícito por scroll
-      window.addEventListener("scroll", debounce(function () {
-        var r = sentinel.getBoundingClientRect();
-        if (r.top < window.innerHeight + 200) loadBatch();
-      }, 150), { passive: true });
+        entries.forEach(function (en) { if (en.isIntersecting) { nudge(); io.disconnect(); } });
+      }, { threshold: 0.35 });
+      io.observe(viewport);
     }
   }
 

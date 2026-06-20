@@ -160,9 +160,11 @@ body { counter-reset: sec; }
     backdrop-filter: blur(14px) saturate(140%);
     border-bottom: 1px solid transparent;
     z-index: 100;
-    transition: background .3s var(--ease), border-color .3s var(--ease);
+    transition: background .3s var(--ease), border-color .3s var(--ease), transform .35s var(--ease);
 }
 .navbar.scrolled { background: rgba(10, 10, 9, .9); border-bottom-color: var(--line); }
+/* Se oculta al scrollear hacia abajo, reaparece al subir */
+.navbar.nav-hidden { transform: translateY(-100%); }
 .nav-container {
     width: 100%; max-width: var(--maxw); margin-inline: auto;
     padding-inline: var(--pad);
@@ -170,7 +172,7 @@ body { counter-reset: sec; }
 }
 .logo { display: flex; align-items: center; gap: 10px; }
 .logo-icon { font-size: 1.2rem; filter: grayscale(.2); }
-.logo-text { font-family: var(--f-display); text-transform: uppercase; letter-spacing: .02em; font-size: 1.4rem; }
+.logo-text { font-family: var(--f-display); text-transform: uppercase; letter-spacing: .02em; font-size: 1.4rem; color: var(--lime-deep); }
 .nav-menu { display: none; align-items: center; gap: 4px; }
 @media (min-width: 860px) { .nav-menu { display: flex; } }
 .nav-link {
@@ -647,9 +649,31 @@ body { counter-reset: sec; }
 .material-desc { color: var(--ink-dim); max-width: 46ch; font-size: clamp(1rem, 1.5vw, 1.2rem); }
 
 .use-cases { background: var(--bg-soft); }
-.cases-grid { display: grid; gap: clamp(14px, 1.8vw, 22px); grid-template-columns: 1fr; margin-top: clamp(40px, 6vw, 64px); }
-@media (min-width: 640px) { .cases-grid { grid-template-columns: 1fr 1fr; } }
-@media (min-width: 980px) { .cases-grid { grid-template-columns: repeat(3, 1fr); } }
+
+/* Carrusel horizontal de casos — se arrastra con click/tap (inercia + rebote por JS) */
+.cases-viewport {
+    margin-top: clamp(40px, 6vw, 64px);
+    overflow: hidden;
+    cursor: grab;
+    touch-action: pan-y;              /* el scroll vertical sigue siendo del navegador */
+    user-select: none;
+    -webkit-user-select: none;
+}
+.cases-viewport:focus-visible { outline: 1px solid var(--lime); outline-offset: 4px; }
+.cases-viewport.is-dragging { cursor: grabbing; }
+.cases-viewport.is-dragging .case-card { pointer-events: none; }
+.cases-track {
+    display: flex;
+    gap: clamp(14px, 1.8vw, 22px);
+    padding: 6px 0;
+    will-change: transform;
+}
+.cases-track > .case-card {
+    flex: 0 0 clamp(270px, 82vw, 360px);
+    min-width: 0;
+}
+@media (min-width: 640px) { .cases-track > .case-card { flex-basis: 340px; } }
+@media (min-width: 980px) { .cases-track > .case-card { flex-basis: 360px; } }
 .case-card {
     border: 1px solid var(--line); padding: clamp(22px, 2.6vw, 30px);
     background: var(--bg);
@@ -679,16 +703,6 @@ body { counter-reset: sec; }
     transition: transform .6s var(--ease);
 }
 .case-card.has-media:hover .case-media img { transform: scale(1.05); }
-
-.infinite-sentinel { height: 1px; }
-.loader { display: flex; justify-content: center; padding: 40px 0 0; }
-.loader[hidden] { display: none; }
-.loader p { font-family: var(--f-mono); font-size: .76rem; text-transform: uppercase; letter-spacing: .14em; color: var(--ink-faint); }
-.loader-dots { display: inline-flex; gap: 8px; }
-.loader-dots span { width: 8px; height: 8px; background: var(--lime); animation: bounce 1s infinite var(--ease); }
-.loader-dots span:nth-child(2) { animation-delay: .15s; }
-.loader-dots span:nth-child(3) { animation-delay: .3s; }
-@keyframes bounce { 0%, 80%, 100% { transform: translateY(0); opacity: .4; } 40% { transform: translateY(-9px); opacity: 1; } }
 
 /* ============================================================
    Risk factors
@@ -762,5 +776,5 @@ body { counter-reset: sec; }
     .reveal { opacity: 1; transform: none; transition: none; }
     .hero-title, .hero-subtitle, .hero-stats { opacity: 1; animation: none; }
     .marquee-track { animation: none; }
-    .loader-dots span { animation: none; }
+    .navbar { transition: none; }
 }
