@@ -434,7 +434,21 @@ body { counter-reset: sec; }
     }
     .hero-slide { scroll-snap-align: none; }
     .hero-slide--img { flex: 0 0 clamp(360px, 34vw, 460px); }
-    .hero-slide--specs { flex: 0 1 480px; padding: 0; }
+    /* la tabla crece para ocupar el ancho libre a la derecha de la imagen */
+    .hero-slide--specs { flex: 1 1 auto; max-width: 920px; padding: 0; }
+
+    /* Tabla más grande para aprovechar el espacio en desktop */
+    .hero-slide--specs .spec-table { border-left-width: 3px; padding-left: clamp(24px, 2.4vw, 44px); }
+    .hero-slide--specs .spec-table-title {
+        font-size: clamp(.74rem, .9vw, .9rem);
+        padding-left: clamp(24px, 2.4vw, 44px);
+        padding-bottom: clamp(16px, 1.4vw, 22px);
+    }
+    .hero-slide--specs .spec-table th { font-size: clamp(.82rem, 1vw, 1.05rem); padding-left: clamp(24px, 2.4vw, 44px); }
+    .hero-slide--specs .spec-table th,
+    .hero-slide--specs .spec-table td { padding-top: clamp(13px, 1.4vw, 20px); padding-bottom: clamp(13px, 1.4vw, 20px); }
+    .hero-slide--specs .spec-table td { font-size: clamp(1.5rem, 2.05vw, 2.4rem); }
+
     .hero-dots { display: none; }
 }
 
