@@ -73,14 +73,35 @@
                     Baldosas de caucho reciclado que absorben impacto. Una solución 100% sostenible contra accidentes domésticos.
                 </p>
                 <div class="hero-visual">
-                    <img src="assets/img/photoproduct-460.webp"
-                         srcset="assets/img/photoproduct-460.webp 460w,
-                                 assets/img/photoproduct-600.webp 600w,
-                                 assets/img/photoproduct-920.webp 920w"
-                         sizes="(max-width: 640px) 90vw, 460px"
-                         alt="Baldosa modular de caucho reciclado CaucHogar, vista de producto"
-                         width="920" height="920" fetchpriority="high" decoding="async">
-                    <span class="hero-visual-tag">Baldosa · Patio · Specs</span>
+                    <!-- Mobile: carrusel deslizable (imagen + specs). Desktop: ambos lado a lado. -->
+                    <div class="hero-showcase">
+                        <figure class="hero-slide hero-slide--img">
+                            <img src="assets/img/photoproduct-460.webp"
+                                 srcset="assets/img/photoproduct-460.webp 460w,
+                                         assets/img/photoproduct-600.webp 600w,
+                                         assets/img/photoproduct-920.webp 920w"
+                                 sizes="(max-width: 759.98px) 90vw, 460px"
+                                 alt="Baldosa modular de caucho reciclado CaucHogar, vista de producto"
+                                 width="920" height="920" fetchpriority="high" decoding="async">
+                            <figcaption class="hero-visual-tag">Baldosa · Patio · Specs</figcaption>
+                        </figure>
+                        <div class="hero-slide hero-slide--specs">
+                            <table class="spec-table">
+                                <caption class="spec-table-title">Especificaciones</caption>
+                                <tbody>
+                                    <tr><th scope="row">Largo</th><td>60 cm</td></tr>
+                                    <tr><th scope="row">Ancho</th><td>60 cm</td></tr>
+                                    <tr><th scope="row">Alto</th><td>2 cm</td></tr>
+                                    <tr><th scope="row">Peso</th><td>3,97 kg</td></tr>
+                                    <tr><th scope="row">Densidad</th><td>770 kg/m²</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="hero-dots">
+                        <button class="hero-dot is-active" type="button" aria-label="Ver el producto"></button>
+                        <button class="hero-dot" type="button" aria-label="Ver las especificaciones"></button>
+                    </div>
                 </div>
                 <div class="hero-stats">
                     <div class="stat-item">
@@ -89,7 +110,7 @@
                     </div>
                     <div class="stat-item">
                         <div class="stat-value">$2.200 M</div>
-                        <div class="stat-label">VAN (10 años)</div>
+                        <div class="stat-label">VAN (10&nbsp;años)</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-value">44 meses</div>

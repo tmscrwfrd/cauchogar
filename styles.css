@@ -314,6 +314,13 @@ body { counter-reset: sec; }
 .stat-value { font-family: var(--f-display); font-weight: 400; font-size: clamp(1.9rem, 4.6vw, 3.4rem); line-height: 1; color: var(--ink); }
 .stat-label { font-family: var(--f-mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .16em; color: var(--ink-dim); margin-top: 10px; }
 
+/* Mobile angosto: que cada stat entre en 1 sola línea en las 3 columnas */
+@media (max-width: 480px) {
+    .stat-item + .stat-item { padding-left: 12px; }
+    .stat-value { font-size: clamp(1.35rem, 6.4vw, 1.9rem); white-space: nowrap; }
+    .stat-label { font-size: .58rem; letter-spacing: .06em; white-space: nowrap; }
+}
+
 /* Hero layout: columna única, imagen del producto debajo del subtítulo */
 .hero-inner { width: 100%; }
 .hero-visual {
@@ -321,6 +328,29 @@ body { counter-reset: sec; }
     width: 100%; max-width: 460px;
     margin: 0 0 clamp(28px, 4vw, 44px);
 }
+
+/* Mobile: carrusel horizontal con scroll-snap (imagen / specs en el mismo espacio) */
+.hero-showcase {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none;            /* Firefox */
+    -ms-overflow-style: none;         /* Edge antiguo */
+    -webkit-overflow-scrolling: touch;
+}
+.hero-showcase::-webkit-scrollbar { display: none; }
+.hero-slide {
+    flex: 0 0 100%;
+    min-width: 0;
+    scroll-snap-align: center;
+}
+.hero-slide--img { position: relative; margin: 0; }
+.hero-slide--specs {
+    display: flex; align-items: center;
+    padding: clamp(6px, 2vw, 16px) 2px;
+}
+
 .hero-visual img {
     width: 100%; height: auto;
     /* funde el fondo gris del estudio hacia el negro de la página */
@@ -336,7 +366,77 @@ body { counter-reset: sec; }
     padding: 6px 12px; backdrop-filter: blur(4px);
 }
 @keyframes floatY { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-@media (prefers-reduced-motion: reduce) { .hero-visual img { animation: none; } }
+@media (prefers-reduced-motion: reduce) {
+    .hero-visual img { animation: none; }
+    .hero-showcase { scroll-behavior: auto; }
+}
+
+/* Tabla de especificaciones (estética "ficha técnica" en mono) */
+.spec-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-left: 2px solid var(--lime);
+    padding-left: clamp(16px, 2vw, 24px);
+}
+.spec-table-title {
+    text-align: left;
+    font-family: var(--f-mono); font-size: .68rem;
+    text-transform: uppercase; letter-spacing: .16em;
+    color: var(--ink-dim);
+    padding: 0 0 14px clamp(16px, 2vw, 24px);
+}
+.spec-table th,
+.spec-table td {
+    padding: clamp(11px, 1.4vw, 15px) 0;
+    border-bottom: 1px solid var(--line);
+    vertical-align: baseline;
+}
+.spec-table th {
+    padding-left: clamp(16px, 2vw, 24px);
+    text-align: left; font-weight: 400;
+    font-family: var(--f-mono); font-size: .72rem;
+    text-transform: uppercase; letter-spacing: .12em;
+    color: var(--ink-dim); white-space: nowrap;
+}
+.spec-table td {
+    text-align: right;
+    font-family: var(--f-display); font-weight: 400;
+    font-size: clamp(1.15rem, 1.5vw, 1.5rem);
+    line-height: 1; color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+.spec-table tr:last-child th,
+.spec-table tr:last-child td { border-bottom: none; }
+
+/* Puntos de navegación del carrusel (solo mobile) */
+.hero-dots {
+    display: flex; justify-content: center; gap: 9px;
+    margin-top: 18px;
+}
+.hero-dot {
+    width: 8px; height: 8px; padding: 0; border-radius: 50%;
+    border: 1px solid var(--line-2); background: transparent;
+    cursor: pointer;
+    transition: background .3s var(--ease), border-color .3s var(--ease), transform .3s var(--ease);
+}
+.hero-dot:hover { border-color: var(--ink-dim); }
+.hero-dot.is-active { background: var(--lime); border-color: var(--lime); transform: scale(1.2); }
+.hero-dot:focus-visible { outline: 1px solid var(--lime); outline-offset: 3px; }
+
+/* Desktop (≥760px): hay espacio — imagen y tabla visibles a la vez, sin carrusel */
+@media (min-width: 760px) {
+    .hero-visual { max-width: none; }
+    .hero-showcase {
+        overflow: visible;
+        scroll-snap-type: none;
+        align-items: center;
+        gap: clamp(32px, 4vw, 64px);
+    }
+    .hero-slide { scroll-snap-align: none; }
+    .hero-slide--img { flex: 0 0 clamp(360px, 34vw, 460px); }
+    .hero-slide--specs { flex: 0 1 480px; padding: 0; }
+    .hero-dots { display: none; }
+}
 
 /* ============================================================
    Marquee
@@ -509,6 +609,11 @@ body { counter-reset: sec; }
 .warning-label { font-size: .9rem; color: var(--ink-dim); }
 .warning-value { font-family: var(--f-mono); font-size: .82rem; text-align: right; color: var(--ink); }
 .warning-value.is-negative { color: var(--danger); }
+/* Mobile angosto: etiqueta y valor no entran en una fila -> los apilo */
+@media (max-width: 520px) {
+    .warning-item { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .warning-value { text-align: left; }
+}
 
 /* ---- Driver tabs ---- */
 .driver-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
