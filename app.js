@@ -16,6 +16,7 @@
     initNavbar();
     initNavToggle();
     initLogoHome();
+    initHeroCarousel();
     initReveal();
     initCounters();
     initSensitivity();
@@ -91,6 +92,48 @@
       var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
     });
+  }
+
+  /* ============================================================
+     Carrusel del hero (imagen / specs) — solo activo en mobile.
+     En desktop ambas slides son visibles y los puntos están ocultos.
+     ============================================================ */
+  function initHeroCarousel() {
+    var showcase = document.querySelector(".hero-showcase");
+    var dotsWrap = document.querySelector(".hero-dots");
+    if (!showcase || !dotsWrap) return;
+
+    var slides = showcase.querySelectorAll(".hero-slide");
+    var dots = dotsWrap.querySelectorAll(".hero-dot");
+    if (!slides.length || dots.length !== slides.length) return;
+
+    // Click en un punto -> desliza a esa slide (sin mover la página verticalmente)
+    dots.forEach(function (dot, i) {
+      dot.addEventListener("click", function () {
+        slides[i].scrollIntoView({
+          behavior: reduceMotion ? "auto" : "smooth",
+          inline: "center",
+          block: "nearest"
+        });
+      });
+    });
+
+    // Marca el punto de la slide más centrada en el viewport del carrusel
+    var ticking = false;
+    function update() {
+      ticking = false;
+      var center = showcase.scrollLeft + showcase.clientWidth / 2;
+      var active = 0, best = Infinity;
+      slides.forEach(function (s, i) {
+        var d = Math.abs((s.offsetLeft + s.offsetWidth / 2) - center);
+        if (d < best) { best = d; active = i; }
+      });
+      dots.forEach(function (d, i) { d.classList.toggle("is-active", i === active); });
+    }
+    showcase.addEventListener("scroll", function () {
+      if (!ticking) { ticking = true; requestAnimationFrame(update); }
+    }, { passive: true });
+    update();
   }
 
   /* ============================================================
