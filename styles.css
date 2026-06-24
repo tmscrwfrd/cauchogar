@@ -840,6 +840,8 @@ body { counter-reset: sec; }
     filter: contrast(1.03) saturate(1.02);
     transition: transform .6s var(--ease);
 }
+/* "Hogares con niños": ajusta el encuadre + hover todas las cards */
+.case-media img[src*="lifestyle.webp"] { object-position: 50% 55%; }
 .case-card.has-media:hover .case-media img { transform: scale(1.05); }
 
 /* ============================================================

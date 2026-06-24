@@ -235,20 +235,22 @@
     return { key: dr.key, label: dr.label, sliderLabel: dr.sliderLabel, unidad: dr.unidad, crit: dr.crit };
   });
 
-  /* ---- Catálogo de casos de aplicación (scroll infinito) ---- */
+  /* ---- Catálogo de casos de aplicación ---- */
   var CASES = [
-    { titulo: "Geriátricos",        tag: "B2B · Salud",        desc: "Pasillos y habitaciones con amortiguación de impacto para residencias de adultos mayores.", metrica: "Caídas −68%", img: "assets/img/rubber-tile-hero.webp", alt: "Patio de estar con sillones sobre piso de caucho CaucHogar en una residencia" },
-    { titulo: "Guarderías",          tag: "B2B · Educación",    desc: "Salas de juego seguras donde los más chicos pueden moverse libremente.",                    metrica: "Lesiones −70%" },
-    { titulo: "Hogares con niños",   tag: "B2C · Familias",     desc: "Cuartos y áreas de juego protegidas sin renunciar al diseño.",                              metrica: "Premium asequible", img: "assets/img/lifestyle.webp", alt: "Adulto mayor con bastón y un niño jugando sobre piso de caucho CaucHogar en un patio" },
-    { titulo: "Colegios",            tag: "B2B · Educación",    desc: "Patios, gimnasios y zonas de recreo con superficie anti-impacto.",                          metrica: "Norma seguridad", img: "assets/img/playground.webp", alt: "Baldosas de caucho rojas y verdes en un patio de juegos con tobogán" },
-    { titulo: "Gimnasios",           tag: "B2B · Deporte",      desc: "Zonas de peso libre y funcional con absorción de vibración y ruido.",                       metrica: "Ruido −40%" },
-    { titulo: "Bordes de pileta",    tag: "B2C · Hogar",        desc: "Superficie antideslizante para zonas húmedas y solárium.",                                  metrica: "Antideslizante" },
-    { titulo: "Centros de rehab.",   tag: "B2B · Salud",        desc: "Pisos seguros para terapia y movilidad asistida.",                                          metrica: "Accesible" },
-    { titulo: "Coworkings",          tag: "B2B · Oficinas",     desc: "Áreas de descanso y break con confort acústico y térmico.",                                 metrica: "ESG ready" },
-    { titulo: "Pet-friendly",        tag: "B2C · Hogar",        desc: "Espacios para mascotas, fáciles de limpiar y resistentes.",                                 metrica: "Lavable", img: "assets/img/walkway.webp", alt: "Sendero de baldosas de caucho gris en un patio con jardín" },
-    { titulo: "Espacios creativos",  tag: "B2B · Cultura",      desc: "Talleres y salas de arte donde la seguridad acompaña la actividad.",                        metrica: "Modular", img: "assets/img/invernadero.webp", alt: "Invernadero con macetas y banco de trabajo sobre piso de caucho CaucHogar" },
-    { titulo: "Retail construcción", tag: "B2B · Distribución", desc: "Línea premium para corralones y retailers de materiales.",                                  metrica: "Margen alto" },
-    { titulo: "Terrazas verdes",     tag: "B2C · Exterior",     desc: "Pisos sostenibles para balcones y terrazas urbanas.",                                       metrica: "100% reciclado", img: "assets/img/outdoorlounge.webp", alt: "Lounge exterior con sofá y brasero sobre piso de caucho CaucHogar" }
+    /* Primero las que tienen foto */
+    { titulo: "Hogares con niños",   tag: "Familia",     desc: "Cuartos y áreas de juego protegidas sin renunciar al diseño.",                              metrica: "Premium asequible", img: "assets/img/lifestyle.webp", alt: "Adulto mayor con bastón y un niño jugando sobre piso de caucho CaucHogar en un patio" },
+    { titulo: "Geriátricos",        tag: "Salud",        desc: "Pasillos y habitaciones con amortiguación de impacto para residencias de adultos mayores.", metrica: "Caídas −68%", img: "assets/img/rubber-tile-hero.webp", alt: "Patio de estar con sillones sobre piso de caucho CaucHogar en una residencia" },
+    { titulo: "Colegios",            tag: "Educación",    desc: "Patios, gimnasios y zonas de recreo con superficie anti-impacto.",                          metrica: "Norma seguridad", img: "assets/img/playground.webp", alt: "Baldosas de caucho rojas y verdes en un patio de juegos con tobogán" },
+    { titulo: "Patios y Decks",        tag: "Hogar",        desc: "Espacios exteriores.",                                 metrica: "Lavable", img: "assets/img/walkway.webp", alt: "Sendero de baldosas de caucho gris en un patio con jardín" },
+    { titulo: "Espacios creativos",  tag: "Cultura",      desc: "Para tu Taller o invernadero.",                        metrica: "Modular", img: "assets/img/invernadero.webp", alt: "Invernadero con macetas y banco de trabajo sobre piso de caucho CaucHogar" },
+    { titulo: "Terrazas verdes",     tag: "Exterior",     desc: "Pisos sostenibles para balcones y terrazas urbanas.",                                       metrica: "100% reciclado", img: "assets/img/outdoorlounge.webp", alt: "Lounge exterior con sofá y brasero sobre piso de caucho CaucHogar" },
+    /* Después las que no tienen foto */
+    { titulo: "Guarderías",          tag: "Educación",    desc: "Salas de juego seguras donde los más chicos pueden moverse libremente.",                    metrica: "Lesiones −70%" },
+    { titulo: "Gimnasios",           tag: "Deporte",      desc: "Zonas de peso libre y funcional con absorción de vibración y ruido.",                       metrica: "Ruido −40%" },
+    { titulo: "Bordes de pileta",    tag: "Hogar",        desc: "Superficie antideslizante para zonas húmedas y solárium.",                                  metrica: "Antideslizante" },
+    { titulo: "Centros de rehab.",   tag: "Salud",        desc: "Pisos seguros para terapia y movilidad asistida.",                                          metrica: "Accesible" },
+    { titulo: "Coworkings",          tag: "Oficinas",     desc: "Áreas de descanso y break con confort acústico y térmico.",                                 metrica: "ESG ready" },
+    { titulo: "Retail construcción", tag: "B2B · Distribución", desc: "Línea premium para corralones y retailers de materiales.",                                  metrica: "Margen alto" }
   ];
 
   window.CAUCHO = {
