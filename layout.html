@@ -51,9 +51,9 @@
              width="1600" height="1600" fetchpriority="high" decoding="async">
         <div class="material-band-overlay">
             <div class="container">
-                <p class="material-kicker">El material</p>
-                <h2 class="material-title">Absorbe impacto.<br>Acústico. Antideslizante.</h2>
-                <p class="material-desc">Cada baldosa reutiliza +3 kg de neumáticos fuera de uso. Drena liquido y mantiene el agarre en mojado.</p>
+                <p class="material-kicker">Nuestras Baldosas</p>
+                <h2 class="material-title">Absorben impacto.<br>Acústicas y Antideslizantes.</h2>
+                <p class="material-desc">Cada una reutiliza +3 kg de caucho de neumáticos fuera de uso.<br>Mantienen el agarre en mojado y previenen lesiones domésticas por caídas.</p>
             </div>
         </div>
     </section>
@@ -66,8 +66,33 @@
         </div>
         <div class="hero-content">
             <div class="hero-inner">
-                <h1 class="hero-title">
-                    Hacemos espacios <span class="highlight">más seguros</span>
+                <h1 class="hero-title hero-title--svg">
+                    <span class="sr-only">Hacemos tu espacio más seguro</span>
+                    <!-- Desktop (≥1500px): 2 líneas, como el título fluido en pantalla ancha -->
+                    <svg class="hero-title-svg hero-title-svg--d" viewBox="0 10 1430 390" aria-hidden="true" preserveAspectRatio="xMinYMid meet">
+                        <defs>
+                            <mask id="ht-clash-d" maskUnits="userSpaceOnUse" x="-50" y="-100" width="1600" height="800">
+                                <rect x="-50" y="-100" width="1600" height="800" fill="#000"/>
+                                <text x="0" y="190" class="ht-svg-text" fill="#fff">HACEMOS TU ESPACIO</text>
+                            </mask>
+                        </defs>
+                        <text x="0" y="190" class="ht-svg-text ht-ink">HACEMOS TU ESPACIO</text>
+                        <text x="0" y="375" class="ht-svg-text ht-lime">MÁS SEGURO</text>
+                        <text x="0" y="375" class="ht-svg-text ht-clash" mask="url(#ht-clash-d)">MÁS SEGURO</text>
+                    </svg>
+                    <!-- Mobile (<1500px): 3 líneas apiladas (no se rompe en angosto) -->
+                    <svg class="hero-title-svg hero-title-svg--m" viewBox="0 10 1040 575" aria-hidden="true" preserveAspectRatio="xMinYMid meet">
+                        <defs>
+                            <mask id="ht-clash-m" maskUnits="userSpaceOnUse" x="-50" y="-100" width="1200" height="900">
+                                <rect x="-50" y="-100" width="1200" height="900" fill="#000"/>
+                                <text x="0" y="375" class="ht-svg-text" fill="#fff">ESPACIO</text>
+                            </mask>
+                        </defs>
+                        <text x="0" y="190" class="ht-svg-text ht-ink">HACEMOS TU </text>
+                        <text x="0" y="375" class="ht-svg-text ht-ink">ESPACIO</text>
+                        <text x="0" y="560" class="ht-svg-text ht-lime">MÁS SEGURO</text>
+                        <text x="0" y="560" class="ht-svg-text ht-clash" mask="url(#ht-clash-m)">MÁS SEGURO</text>
+                    </svg>
                 </h1>
                 <p class="hero-subtitle">
                     Baldosas de caucho reciclado que absorben impacto. Una solución 100% sostenible contra accidentes domésticos.
@@ -124,8 +149,8 @@
     <!-- Marquee -->
     <div class="marquee" aria-hidden="true">
         <div class="marquee-track">
-            <span>Espacios más Seguros</span><span>Absorbe Impacto</span><span>Acústico</span><span>Hecho en Argentina</span><span>Baldosas de Caucho</span>
-            <span>Espacios más Seguros</span><span>Absorbe Impacto</span><span>Acústico</span><span>Hecho en Argentina</span><span>Baldosas de Caucho</span>
+            <span>Prevení Lesiones</span><span>Absorben Impacto</span><span>Acústico</span><span>Hecho en Argentina</span><span>Baldosas de Caucho</span><span>Antideslizantes</span>
+            <span>Prevení Lesiones</span><span>Absorben Impacto</span><span>Acústico</span><span>Hecho en Argentina</span><span>Baldosas de Caucho</span><span>Antideslizantes</span>
         </div>
     </div>
 
@@ -157,7 +182,7 @@
             </div>
 
             <div class="value-prop">
-                <h3>Value Proposition para diferentes segmentos:</h3>
+                <h3>Una propuesta de valor, distintos canales:</h3>
                 <div class="grid-3">
                     <div class="segment">
                         <h4>Familias</h4>
@@ -168,8 +193,8 @@
                         <p>Geriátricos, guarderías, hospitales reducen riesgos</p>
                     </div>
                     <div class="segment">
-                        <h4>Sostenibilidad</h4>
-                        <p>Informacion, compliance y economía circular</p>
+                        <h4>Retailers</h4>
+                        <p>Corralones de revestimientos para la construcción</p>
                     </div>
                 </div>
             </div>
@@ -399,8 +424,8 @@
         </div>
     </section>
 
-    <!-- Risk Factors -->
-    <section class="risk-factors">
+    <!-- Risk Factors — OCULTA temporalmente (quitar el atributo `hidden` para reactivar) -->
+    <section class="risk-factors" hidden>
         <div class="container">
             <h2 class="section-title">Factores de Riesgo y Mitigación</h2>
             

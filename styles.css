@@ -103,6 +103,9 @@ body { counter-reset: sec; }
 }
 /* El título de Indicadores entra en 1 renglón en desktop (override del cap de 16ch) */
 #Indicadores .section-title { max-width: 22ch; }
+/* Estos títulos también en 1 renglón en desktop */
+#problema .section-title { max-width: 20ch; }
+.market-opportunity .section-title { max-width: 26ch; }
 .section-title::before {
     counter-increment: sec;
     content: "(" counter(sec, decimal-leading-zero) ")";
@@ -295,6 +298,27 @@ body { counter-reset: sec; }
     color: var(--lime);
     -webkit-text-fill-color: var(--lime);
     font-style: normal;
+}
+/* PROTOTIPO opción 4 — SVG mask: el cruce real acento∩letra toma color de paleta.
+   El <h1> guarda el texto accesible (sr-only); el SVG es decorativo (aria-hidden). */
+.hero-title--svg { line-height: 0; }
+/* ancho atado al clamp del título viejo. Dos variantes que no rompen:
+   default = 3 líneas (mobile/angosto, font = 200*ancho/1040);
+   ≥1500px = 2 líneas (desktop ancho, font = 200*ancho/1430). */
+.hero-title-svg { max-width: 100%; height: auto; overflow: visible; }
+.hero-title-svg--d { display: none; }
+.hero-title-svg--m { display: block; width: clamp(283px, 70.2vw, 998px); }
+@media (min-width: 1500px) {
+    .hero-title-svg--m { display: none; }
+    .hero-title-svg--d { display: block; width: clamp(389px, 96.5vw, 1373px); }
+}
+.ht-svg-text { font-family: var(--f-display); font-weight: 400; font-size: 200px; letter-spacing: -2px; }
+.ht-ink   { fill: var(--ink); }
+.ht-lime  { fill: var(--lime); }
+.ht-clash { fill: var(--clash, #ffb338); }   /* color de la intersección (swappable) */
+.sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
 }
 .hero-subtitle {
     font-family: var(--f-sans);
@@ -768,6 +792,7 @@ body { counter-reset: sec; }
        textura de fondo se veía sobre la foto. */
     position: absolute; inset: 0; z-index: 0;
     width: 100%; height: 100%; object-fit: cover;
+    object-position: center 70%;   /* baja el encuadre para que entre la punta de la baldosa */
 }
 .material-band-overlay {
     /* Solo contiene el texto, en flujo (define el alto de la banda como antes).
@@ -776,7 +801,7 @@ body { counter-reset: sec; }
     padding-block: clamp(40px, 7vw, 96px);
 }
 .material-kicker {
-    font-family: var(--f-mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .22em;
+    font-family: var(--f-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: .22em;
     color: var(--lime); margin-bottom: 16px;
 }
 .material-title {
@@ -784,7 +809,7 @@ body { counter-reset: sec; }
     font-size: clamp(2.2rem, 6.5vw, 5rem); line-height: 1; letter-spacing: -.01em;  /* holgura para tildes de mayúscula */
     margin-bottom: clamp(14px, 2vw, 22px); text-wrap: balance;
 }
-.material-desc { color: var(--ink-dim); max-width: 46ch; font-size: clamp(1rem, 1.5vw, 1.2rem); }
+.material-desc { color: var(--ink-dim); max-width: 102ch; font-size: clamp(1rem, 1.5vw, 1.2rem); }
 
 .use-cases { background: var(--bg-soft); }
 
