@@ -315,7 +315,6 @@ body { counter-reset: sec; }
 .ht-svg-text { font-family: var(--f-display); font-weight: 400; font-size: 200px; letter-spacing: -2px; }
 .ht-ink   { fill: var(--ink); }
 .ht-lime  { fill: var(--lime); }
-.ht-clash { fill: var(--clash, #ffb338); }   /* color de la intersección (swappable) */
 .sr-only {
     position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
     overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
