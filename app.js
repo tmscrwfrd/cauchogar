@@ -20,6 +20,7 @@
     initReveal();
     initCounters();
     initSensitivity();
+    initScenarios();
     initCases();
   });
 
@@ -508,6 +509,221 @@
         ctx.fill();
       }
     }
+  }
+
+  /* ============================================================
+     Simulación de escenarios — FF acumulado (39 trayectorias)
+     Un solo gráfico "tipo Monte Carlo": cada línea es un escenario
+     de la sheet DRIVERS(1); la base común se dibuja una sola vez.
+     ============================================================ */
+  function initScenarios() {
+    var canvas = document.getElementById("mcChart");
+    var legendWrap = document.getElementById("mcLegend");
+    var tip = document.getElementById("mcTip");
+    if (!canvas || !canvas.getContext || !legendWrap || !tip || !M || !M.scenarios) return;
+
+    var COLORS = { precio: "#cdff00", volumen: "#aadb00", cvu: "#ff5a4d", cf: "#ffb338", mp: "#8e918a" };
+    var BASE_COLOR = "#f2f2ec";
+    var PAD = { top: 14, right: 18, bottom: 30, left: 68 };
+
+    // FF acumulado por escenario. La base de precio/CVU/volumen/CF es la misma
+    // trayectoria: se dibuja una sola vez como línea destacada (la de MP difiere
+    // porque su anexo usa otra base de flujo, y queda como línea normal).
+    var lines = [];
+    var base = null;
+    M.scenarios.forEach(function (g) {
+      g.rows.forEach(function (r) {
+        var pts = [], acc = 0, i;
+        for (i = 0; i < r.ff.length; i++) { acc += r.ff[i]; pts.push(acc); }
+        var l = { key: g.key, label: g.label, d: r.d, pts: pts, van: r.van, tir: r.tir };
+        if (r.d === 0 && g.key !== "mp") {
+          if (!base) { l.key = "base"; l.label = "Escenario base"; base = l; }
+          return;                          // las otras bases son duplicados exactos
+        }
+        lines.push(l);
+      });
+    });
+    if (!base) return;
+
+    var hiddenKeys = {};      // key de driver -> true si está oculto desde la leyenda
+    var highlighted = null;   // línea bajo el cursor
+    var geom = null;          // escalas del último render (para el hit-test del hover)
+
+    function visibleLines() {
+      return lines.filter(function (l) { return !hiddenKeys[l.key]; });
+    }
+
+    /* Paso "redondo" para ~5 gridlines horizontales */
+    function niceStep(range) {
+      var raw = range / 5;
+      var mag = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10));
+      var norm = raw / mag;
+      var step = norm >= 5 ? 10 : norm >= 2 ? 5 : norm >= 1 ? 2 : 1;
+      return step * mag;
+    }
+
+    function fmtVanM(v) {
+      var n = Math.round(v);
+      if (n === 0) n = 0;                 // normaliza el -0 de los ticks flotantes
+      return "$" + n.toLocaleString("es-AR") + "M";
+    }
+
+    function render() {
+      var dpr = window.devicePixelRatio || 1;
+      var w = canvas.clientWidth || 600;
+      var h = canvas.clientHeight || 380;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      var ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+
+      var vis = visibleLines();
+      var all = vis.concat([base]);
+      var min = Infinity, max = -Infinity;
+      all.forEach(function (l) {
+        l.pts.forEach(function (v) { if (v < min) min = v; if (v > max) max = v; });
+      });
+      var span = (max - min) || 1;
+      min -= span * 0.04;
+      max += span * 0.04;
+      span = max - min;
+
+      function x(i) { return PAD.left + (i / 10) * (w - PAD.left - PAD.right); }
+      function y(v) { return PAD.top + (1 - (v - min) / span) * (h - PAD.top - PAD.bottom); }
+      geom = { x: x, y: y };
+
+      /* Grid horizontal + labels de M$ (el cero va más marcado) */
+      ctx.font = '10px "Space Mono", ui-monospace, monospace';
+      var step = niceStep(span);
+      var v0 = Math.ceil(min / step) * step;
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      for (var v = v0; v <= max; v += step) {
+        var yy = y(v);
+        var isZero = Math.abs(v) < step / 1e6;
+        ctx.strokeStyle = isZero ? "rgba(242,242,236,.30)" : "rgba(242,242,236,.09)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(PAD.left, yy);
+        ctx.lineTo(w - PAD.right, yy);
+        ctx.stroke();
+        ctx.fillStyle = isZero ? "rgba(242,242,236,.75)" : "rgba(142,145,138,.9)";
+        ctx.fillText(fmtVanM(v), PAD.left - 8, yy);
+      }
+
+      /* Ticks de años (cada 2 si el ancho aprieta) */
+      var everyX = w < 520 ? 2 : 1;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillStyle = "rgba(142,145,138,.9)";
+      for (var i = 0; i <= 10; i += everyX) {
+        ctx.fillText(String(i), x(i), h - PAD.bottom + 8);
+      }
+
+      function strokeLine(l, color, alpha, width) {
+        ctx.strokeStyle = hexToRgba(color, alpha);
+        ctx.lineWidth = width;
+        ctx.lineJoin = "round";
+        ctx.beginPath();
+        for (var j = 0; j < l.pts.length; j++) {
+          var px = x(j), py = y(l.pts[j]);
+          if (j === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+      }
+
+      /* Enjambre -> base -> resaltada (de atrás hacia adelante) */
+      var hasHi = !!highlighted;
+      vis.forEach(function (l) {
+        if (l === highlighted) return;
+        strokeLine(l, COLORS[l.key], hasHi ? 0.14 : 0.5, 1.4);
+      });
+      if (base !== highlighted) strokeLine(base, BASE_COLOR, hasHi ? 0.35 : 0.95, 2.4);
+      if (highlighted) {
+        var hc = highlighted.key === "base" ? BASE_COLOR : COLORS[highlighted.key];
+        strokeLine(highlighted, hc, 1, 2.6);
+        ctx.fillStyle = hc;
+        ctx.beginPath();
+        ctx.arc(x(10), y(highlighted.pts[10]), 3.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    /* ---- Hover / tap: resaltar la línea más cercana + tooltip ---- */
+    function segDist(px, py, x1, y1, x2, y2) {
+      var dx = x2 - x1, dy = y2 - y1;
+      var len2 = (dx * dx + dy * dy) || 1;
+      var t = ((px - x1) * dx + (py - y1) * dy) / len2;
+      t = Math.max(0, Math.min(1, t));
+      var qx = x1 + t * dx, qy = y1 + t * dy;
+      return Math.sqrt((px - qx) * (px - qx) + (py - qy) * (py - qy));
+    }
+
+    function nearestLine(mx, my) {
+      if (!geom) return null;
+      var best = null, bestD = 12;   // tolerancia en px
+      var cands = visibleLines().concat([base]);
+      cands.forEach(function (l) {
+        for (var i = 0; i < 10; i++) {
+          var d = segDist(mx, my, geom.x(i), geom.y(l.pts[i]), geom.x(i + 1), geom.y(l.pts[i + 1]));
+          if (d < bestD) { bestD = d; best = l; }
+        }
+      });
+      return best;
+    }
+
+    function onMove(e) {
+      var rect = canvas.getBoundingClientRect();
+      var mx = e.clientX - rect.left, my = e.clientY - rect.top;
+      var hit = nearestLine(mx, my);
+      if (hit !== highlighted) { highlighted = hit; render(); }
+      if (hit) {
+        var head = hit.key === "base" ? "Base" : hit.label + " " + (hit.d > 0 ? "+" : "") + hit.d + "%";
+        tip.textContent = head + " · VAN " + fmtVanM(hit.van) + " · TIR " + hit.tir.toFixed(1) + "%";
+        tip.hidden = false;
+        var tw = tip.offsetWidth, th = tip.offsetHeight;
+        var tx = Math.min(Math.max(mx + 14, 0), rect.width - tw - 2);
+        var ty = my - th - 12;
+        if (ty < 0) ty = my + 16;
+        tip.style.left = tx + "px";
+        tip.style.top = ty + "px";
+      } else {
+        tip.hidden = true;
+      }
+    }
+    canvas.addEventListener("pointermove", onMove);
+    canvas.addEventListener("pointerdown", onMove);    // tap en touch
+    canvas.addEventListener("pointerleave", function () {
+      highlighted = null;
+      tip.hidden = true;
+      render();
+    });
+
+    /* ---- Leyenda: base fija + un toggle por driver ---- */
+    var baseTag = document.createElement("span");
+    baseTag.className = "mc-legend-item is-static";
+    baseTag.innerHTML = '<span class="mc-swatch" style="background:' + BASE_COLOR + '"></span>Base';
+    legendWrap.appendChild(baseTag);
+    M.scenarios.forEach(function (g) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "mc-legend-item";
+      b.setAttribute("aria-pressed", "true");
+      b.innerHTML = '<span class="mc-swatch" style="background:' + COLORS[g.key] + '"></span>' + g.label;
+      b.addEventListener("click", function () {
+        hiddenKeys[g.key] = !hiddenKeys[g.key];
+        b.classList.toggle("is-off", !!hiddenKeys[g.key]);
+        b.setAttribute("aria-pressed", hiddenKeys[g.key] ? "false" : "true");
+        if (highlighted && highlighted.key === g.key) { highlighted = null; tip.hidden = true; }
+        render();
+      });
+      legendWrap.appendChild(b);
+    });
+
+    window.addEventListener("resize", debounce(render, 120));
+    render();
   }
 
   /* ============================================================
