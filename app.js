@@ -526,15 +526,18 @@
     var BASE_COLOR = "#f2f2ec";
     var PAD = { top: 14, right: 18, bottom: 30, left: 68 };
 
-    // FF acumulado por escenario. La base de precio/CVU/volumen/CF es la misma
-    // trayectoria: se dibuja una sola vez como línea destacada (la de MP difiere
-    // porque su anexo usa otra base de flujo, y queda como línea normal).
+    // FF descontado a valor presente (tasa del inversor) y acumulado: así el
+    // punto del año 10 de cada curva coincide con el VAN del escenario y las
+    // curvas de VAN negativo terminan debajo del cero. La base de precio/CVU/
+    // volumen/CF es la misma trayectoria: se dibuja una sola vez como línea
+    // destacada (la de MP difiere porque su anexo usa otra base de flujo).
+    var rate = 1 + ((M.BASE && M.BASE.tasaInv) || 10.2) / 100;
     var lines = [];
     var base = null;
     M.scenarios.forEach(function (g) {
       g.rows.forEach(function (r) {
         var pts = [], acc = 0, i;
-        for (i = 0; i < r.ff.length; i++) { acc += r.ff[i]; pts.push(acc); }
+        for (i = 0; i < r.ff.length; i++) { acc += r.ff[i] / Math.pow(rate, i); pts.push(acc); }
         var l = { key: g.key, label: g.label, d: r.d, pts: pts, van: r.van, tir: r.tir };
         if (r.d === 0 && g.key !== "mp") {
           if (!base) { l.key = "base"; l.label = "Escenario base"; base = l; }

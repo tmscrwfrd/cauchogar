@@ -358,10 +358,10 @@
 
             <!-- Simulación de escenarios: las 39 trayectorias de la sheet DRIVERS(1) -->
             <div class="montecarlo">
-                <h4 class="mc-title">Simulación de Escenarios · FF Acumulado</h4>
-                <p class="mc-sub">Todos los escenarios del modelo en un solo gráfico: el flujo de fondos acumulado del inversor (años 0–10) variando cada driver de −25% a +25%. La línea blanca es el escenario base.</p>
+                <h4 class="mc-title">Simulación de Escenarios · VAN Acumulado</h4>
+                <p class="mc-sub">Todos los escenarios del modelo en un solo gráfico: el flujo de fondos del inversor descontado a valor presente (10,2% anual) y acumulado año a año, variando cada driver de −25% a +25%. El punto final de cada curva es el VAN del escenario; la línea blanca es la base.</p>
                 <div class="mc-wrap">
-                    <canvas id="mcChart" role="img" aria-label="Gráfico tipo simulación Monte Carlo: 39 trayectorias del flujo de fondos acumulado a 10 años, una por escenario de cada driver"></canvas>
+                    <canvas id="mcChart" role="img" aria-label="Gráfico tipo simulación Monte Carlo: 39 trayectorias del VAN acumulado a 10 años, una por escenario de cada driver"></canvas>
                     <div class="mc-tip" id="mcTip" hidden></div>
                 </div>
                 <div class="mc-legend" id="mcLegend" role="group" aria-label="Mostrar u ocultar drivers del gráfico"></div>
