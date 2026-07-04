@@ -722,6 +722,10 @@ body { counter-reset: sec; }
     color: var(--ink); background: rgba(10, 10, 9, .92); border: 1px solid var(--line-2);
     padding: 8px 10px;
 }
+/* En angosto el texto del tip no entra en una línea: dejarlo wrappear */
+@media (max-width: 640px) {
+    .mc-tip { white-space: normal; max-width: 86%; }
+}
 .mc-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
 .mc-legend-item {
     display: inline-flex; align-items: center; gap: 8px;

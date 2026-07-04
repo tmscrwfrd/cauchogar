@@ -684,7 +684,9 @@
         tip.textContent = head + " · VAN " + fmtVanM(hit.van) + " · TIR " + hit.tir.toFixed(1) + "%";
         tip.hidden = false;
         var tw = tip.offsetWidth, th = tip.offsetHeight;
-        var tx = Math.min(Math.max(mx + 14, 0), rect.width - tw - 2);
+        // Prioriza el borde izquierdo: si el tip es más ancho que el canvas,
+        // mejor recortar a la derecha que dibujarlo en left negativo.
+        var tx = Math.max(0, Math.min(mx + 14, rect.width - tw - 2));
         var ty = my - th - 12;
         if (ty < 0) ty = my + 16;
         tip.style.left = tx + "px";
@@ -695,7 +697,11 @@
     }
     canvas.addEventListener("pointermove", onMove);
     canvas.addEventListener("pointerdown", onMove);    // tap en touch
-    canvas.addEventListener("pointerleave", function () {
+    canvas.addEventListener("pointerleave", function (e) {
+      // En touch el UA dispara pointerleave apenas se levanta el dedo:
+      // ignorarlo para que el tap deje el tooltip fijado (un tap en zona
+      // vacía lo oculta vía la rama else de onMove).
+      if (e.pointerType && e.pointerType !== "mouse") return;
       highlighted = null;
       tip.hidden = true;
       render();
@@ -724,6 +730,11 @@
 
     window.addEventListener("resize", debounce(render, 120));
     render();
+    // Re-render cuando cargue Space Mono: el primer paint puede rasterizar
+    // los labels del eje con la fuente fallback (display=swap no re-pinta canvas).
+    if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
+      document.fonts.ready.then(function () { render(); });
+    }
   }
 
   /* ============================================================
