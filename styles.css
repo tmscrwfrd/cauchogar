@@ -710,6 +710,38 @@ body { counter-reset: sec; }
     .tornado-track { grid-area: track; }
 }
 
+/* ---- Simulación de escenarios (gráfico tipo Monte Carlo) ---- */
+.montecarlo { margin-top: clamp(36px, 5vw, 56px); border: 1px solid var(--line); padding: clamp(24px, 3vw, 40px); }
+.mc-title { font-family: var(--f-mono); text-transform: uppercase; letter-spacing: .14em; font-size: .82rem; color: var(--lime); margin-bottom: 10px; font-weight: 400; }
+.mc-sub { color: var(--ink-dim); font-size: .92rem; margin-bottom: 28px; text-wrap: pretty; }
+.mc-wrap { position: relative; }
+.mc-wrap canvas { display: block; width: 100%; height: clamp(300px, 42vw, 460px); touch-action: pan-y; }
+.mc-tip {
+    position: absolute; z-index: 2; pointer-events: none;
+    font-family: var(--f-mono); font-size: .72rem; letter-spacing: .04em; white-space: nowrap;
+    color: var(--ink); background: rgba(10, 10, 9, .92); border: 1px solid var(--line-2);
+    padding: 8px 10px;
+}
+/* En angosto el texto del tip no entra en una línea: dejarlo wrappear */
+@media (max-width: 640px) {
+    .mc-tip { white-space: normal; max-width: 86%; }
+}
+.mc-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.mc-legend-item {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--f-mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .1em;
+    color: var(--ink-dim); background: transparent; border: 1px solid var(--line);
+    padding: 7px 12px; cursor: pointer;
+    transition: color .25s var(--ease), border-color .25s var(--ease), opacity .25s var(--ease);
+}
+.mc-legend-item:hover { color: var(--ink); border-color: var(--line-2); }
+.mc-legend-item:focus-visible { outline: 1px solid var(--lime); outline-offset: 2px; }
+.mc-legend-item.is-off { opacity: .38; }
+.mc-legend-item.is-static { cursor: default; }
+.mc-legend-item.is-static:hover { color: var(--ink-dim); border-color: var(--line); }
+.mc-swatch { width: 14px; height: 3px; }
+.mc-note { color: var(--ink-dim); font-size: .9rem; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); text-wrap: pretty; }
+
 /* ---- Dashboard compacto en mobile: que entren tabs + slider + resultados ---- */
 @media (max-width: 640px) {
     #sensibilidad .section-title { font-size: clamp(2rem, 9vw, 2.6rem); margin-bottom: 10px; }

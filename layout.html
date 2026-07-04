@@ -355,6 +355,18 @@
                 <div class="tornado-chart" id="tornado"></div>
                 <p class="tornado-note">Precio y volumen son las palancas críticas: pueden destruir el VAN. La materia prima, pese a ser el insumo central, tiene impacto marginal.<br>La disciplina de pricing y la ejecución comercial son lo que más protege al inversor.</p>
             </div>
+
+            <!-- Simulación de escenarios: las 39 trayectorias de la sheet DRIVERS(1) -->
+            <div class="montecarlo">
+                <h4 class="mc-title">Simulación de Escenarios · VAN Acumulado</h4>
+                <p class="mc-sub">Todos los escenarios del modelo en un solo gráfico: el flujo de fondos del inversor descontado a valor presente (10,2% anual) y acumulado año a año, variando cada driver de −25% a +25%. El punto final de cada curva es el VAN del escenario; la línea blanca es la base.</p>
+                <div class="mc-wrap">
+                    <canvas id="mcChart" role="img" aria-label="Gráfico tipo simulación Monte Carlo: 39 trayectorias del VAN acumulado a 10 años, una por escenario de cada driver"></canvas>
+                    <div class="mc-tip" id="mcTip" hidden></div>
+                </div>
+                <div class="mc-legend" id="mcLegend" role="group" aria-label="Mostrar u ocultar drivers del gráfico"></div>
+                <p class="mc-note">Pasá el mouse (o tocá) una línea para ver su escenario: driver, variación, VAN y TIR. Los escenarios de materia prima corren sobre su propia base de flujo, por eso forman la banda inferior.</p>
+            </div>
         </div>
     </section>
 
