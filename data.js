@@ -33,14 +33,13 @@
   /* Anclas de % comunes a todos los anexos */
   var PCTS = [-25, -15, -5, 0, 5, 15, 25];
 
-  /* Interpolación lineal sobre las anclas; null = no modelado (n/a) */
+  /* Interpolación lineal sobre las anclas */
   function lerp(pts, pct) {
     if (pct <= PCTS[0]) return pts[0];
     if (pct >= PCTS[PCTS.length - 1]) return pts[pts.length - 1];
     for (var i = 0; i < PCTS.length - 1; i++) {
       if (pct >= PCTS[i] && pct <= PCTS[i + 1]) {
         var a = pts[i], b = pts[i + 1];
-        if (a === null || b === null) return null;
         var t = (pct - PCTS[i]) / (PCTS[i + 1] - PCTS[i]);
         return a + (b - a) * t;
       }
@@ -97,6 +96,21 @@
     }
   ];
 
+  /* La sheet no modela la TIR en los extremos adversos de precio y volumen
+     (null en las anclas). Para que el dashboard muestre siempre un número,
+     esas anclas se extrapolan linealmente desde los dos puntos conocidos
+     más cercanos: son estimaciones, no valores de la sheet. */
+  DRIVERS.forEach(function (dr) {
+    var t = dr.tir;
+    var i = 0;
+    while (i < t.length && t[i] === null) i++;
+    if (i === 0 || i >= t.length - 1) return;
+    var slope = (t[i + 1] - t[i]) / (PCTS[i + 1] - PCTS[i]);
+    for (var k = i - 1; k >= 0; k--) {
+      t[k] = Math.round((t[i] + slope * (PCTS[k] - PCTS[i])) * 10) / 10;
+    }
+  });
+
   function driverByKey(key) {
     for (var i = 0; i < DRIVERS.length; i++) if (DRIVERS[i].key === key) return DRIVERS[i];
     return DRIVERS[0];
@@ -111,7 +125,7 @@
       cmu: dr.cmu(d),
       resultadoOp: dr.ro(d),     // M$
       van: lerp(dr.van, pct),    // M$
-      tir: lerp(dr.tir, pct)     // % o null
+      tir: lerp(dr.tir, pct)     // %
     };
   }
 
@@ -157,7 +171,6 @@
       cmu: METRIC_BASE.cmu, resultadoOp: METRIC_BASE.resultadoOp,
       van: METRIC_BASE.van, tir: METRIC_BASE.tir
     };
-    var tirNull = false;
     for (var i = 0; i < DRIVERS.length; i++) {
       var key = DRIVERS[i].key, pct = deltaOf(deltas, key);
       if (!pct) continue;
@@ -165,10 +178,8 @@
       out.cmu         += r.cmu - METRIC_BASE.cmu;
       out.resultadoOp += r.resultadoOp - METRIC_BASE.resultadoOp;
       out.van         += r.van - METRIC_BASE.van;
-      if (r.tir === null) tirNull = true;
-      else out.tir    += r.tir - METRIC_BASE.tir;
+      out.tir         += r.tir - METRIC_BASE.tir;
     }
-    if (tirNull) out.tir = null;   // TIR indefinida si algún driver activo cae en zona n/a
     return out;
   }
 
@@ -176,7 +187,7 @@
      Por superposición, equivale a la curva del driver activo desplazada por el
      offset constante de los demás. */
   function seriesCombined(activeKey, deltas) {
-    var off = { cmu: 0, resultadoOp: 0, van: 0, tir: 0 }, tirNullOff = false;
+    var off = { cmu: 0, resultadoOp: 0, van: 0, tir: 0 };
     for (var i = 0; i < DRIVERS.length; i++) {
       var key = DRIVERS[i].key;
       if (key === activeKey) continue;
@@ -186,8 +197,7 @@
       off.cmu += r.cmu - METRIC_BASE.cmu;
       off.resultadoOp += r.resultadoOp - METRIC_BASE.resultadoOp;
       off.van += r.van - METRIC_BASE.van;
-      if (r.tir === null) tirNullOff = true;
-      else off.tir += r.tir - METRIC_BASE.tir;
+      off.tir += r.tir - METRIC_BASE.tir;
     }
     var arr = [];
     for (var v = -25; v <= 25; v++) {
@@ -197,7 +207,7 @@
         cmu: c.cmu + off.cmu,
         resultadoOp: c.resultadoOp + off.resultadoOp,
         van: c.van + off.van,
-        tir: (c.tir === null || tirNullOff) ? null : c.tir + off.tir
+        tir: c.tir + off.tir
       });
     }
     return arr;

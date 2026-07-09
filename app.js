@@ -353,18 +353,17 @@
       out.cmu.textContent       = fmtMoney(comb.cmu);
       out.resultado.textContent = fmtM(comb.resultadoOp);
       out.van.textContent       = fmtM(comb.van);
-      out.tir.textContent       = (comb.tir === null) ? "n/a" : comb.tir.toFixed(1) + "%";
+      out.tir.textContent       = comb.tir.toFixed(1) + "%";
       if (out.breakeven) out.breakeven.textContent = M.breakevenCombined(activeKey, deltas);
       if (out.tasaCorte) {
-        var ok = (comb.tir !== null && comb.tir >= M.BASE.corte);
-        var tirTxt = (comb.tir === null) ? "n/a" : Math.round(comb.tir) + "%";
-        out.tasaCorte.textContent = "15% (TIR " + tirTxt + (ok ? " > " : " < ") + "15%)";
+        var ok = comb.tir >= M.BASE.corte;
+        out.tasaCorte.textContent = "15% (TIR " + Math.round(comb.tir) + "%" + (ok ? " > " : " < ") + "15%)";
         toggleNeg(out.tasaCorte, !ok);
       }
 
       toggleNeg(out.resultado, comb.resultadoOp < 0);
       toggleNeg(out.van, comb.van < 0);
-      toggleNeg(out.tir, comb.tir === null || comb.tir < M.BASE.corte);
+      toggleNeg(out.tir, comb.tir < M.BASE.corte);
       toggleNeg(out.cmu, comb.cmu < 0);
 
       var serie = M.seriesCombined(activeKey, deltas);
