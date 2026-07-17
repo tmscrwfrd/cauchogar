@@ -264,9 +264,9 @@
   ];
 
   /* ---- Escenarios completos por driver (sheet DRIVERS(1), anexos 1-5) ----
-     ff = flujo de fondos del inversor por año 0..10 en M$; van en M$; tir en %.
-     Nota: el anexo de materia prima usa su propia base de FF (tal cual la sheet),
-     por eso sus trayectorias corren por debajo de las demás. */
+     ff = flujo de fondos del PROYECTO por año 0..10 en M$; van en M$; tir en %.
+     Nota: el anexo de materia prima está modelado sobre la base de flujo del
+     INVERSOR (tal cual la sheet), por eso sus trayectorias corren por debajo. */
   var SCENARIOS = [
     { key: "precio", label: "Precio", rows: [
       { d: -25, ff: [-323, -692, -608, -518, -482, -359, -244, -131, -34, 112, 446], van: -2388, tir: -24.8 },
@@ -319,6 +319,66 @@
     ] }
   ];
 
+  /* ---- Escenarios en base INVERSOR ----
+     El inversor no se lleva la totalidad del flujo del proyecto: participa
+     del 100% en los años 1-3, del 60% en el año 4 y del 34% de los años 5-10.
+     Cada trayectoria = base del inversor (anexo MP, la única de la sheet en
+     esa base: VAN 2.242M / TIR 42,2%) + la variación del escenario respecto
+     de la base proyecto, año a año por la participación. VAN/TIR se
+     recalculan del flujo resultante (VPN al 10,2% / TIR numérica). */
+  var INVESTOR_SHARE = [1, 1, 1, 1, 0.6, 0.34, 0.34, 0.34, 0.34, 0.34, 0.34];
+
+  function npvOf(ff, ratePct) {
+    var r = 1 + ratePct / 100, s = 0;
+    for (var i = 0; i < ff.length; i++) s += ff[i] / Math.pow(r, i);
+    return s;
+  }
+  /* TIR en %: primer cruce de signo del VPN barriendo -90..500%, afinado por bisección */
+  function irrOf(ff) {
+    var lo = null, hi = null, prev = npvOf(ff, -95);
+    for (var r = -90; r <= 500; r += 5) {
+      var v = npvOf(ff, r);
+      if ((prev > 0) !== (v > 0)) { lo = r - 5; hi = r; break; }
+      prev = v;
+    }
+    if (lo === null) return null;
+    for (var k = 0; k < 60; k++) {
+      var m = (lo + hi) / 2;
+      if ((npvOf(ff, lo) > 0) !== (npvOf(ff, m) > 0)) hi = m; else lo = m;
+    }
+    return (lo + hi) / 2;
+  }
+
+  function scenarioBaseRow(key) {
+    for (var i = 0; i < SCENARIOS.length; i++) {
+      if (SCENARIOS[i].key !== key) continue;
+      for (var j = 0; j < SCENARIOS[i].rows.length; j++) {
+        if (SCENARIOS[i].rows[j].d === 0) return SCENARIOS[i].rows[j];
+      }
+    }
+    return null;
+  }
+
+  var SCENARIOS_INV = (function () {
+    var projBase = scenarioBaseRow("precio");  // base común de precio/volumen/cvu/cf
+    var invBase  = scenarioBaseRow("mp");      // anexo MP: ya está en base inversor
+    return SCENARIOS.map(function (g) {
+      return { key: g.key, label: g.label, rows: g.rows.map(function (r) {
+        if (g.key === "mp") return r;          // ya es flujo del inversor
+        if (r.d === 0) return { d: 0, ff: invBase.ff.slice(), van: invBase.van, tir: invBase.tir };
+        var ff = r.ff.map(function (v, i) {
+          return invBase.ff[i] + INVESTOR_SHARE[i] * (v - projBase.ff[i]);
+        });
+        var tir = irrOf(ff);
+        return {
+          d: r.d, ff: ff,
+          van: Math.round(npvOf(ff, BASE.tasaInv)),
+          tir: (tir === null) ? null : Math.round(tir * 10) / 10
+        };
+      }) };
+    });
+  })();
+
   window.CAUCHO = {
     BASE: BASE,
     drivers: DRIVER_LIST,
@@ -330,6 +390,7 @@
     breakevenCombined: breakevenCombined,
     tornado: TORNADO,
     cases: CASES,
-    scenarios: SCENARIOS
+    scenarios: SCENARIOS,
+    scenariosInvestor: SCENARIOS_INV
   };
 })();

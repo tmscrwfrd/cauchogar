@@ -527,29 +527,75 @@
 
     // FF descontado a valor presente (tasa del inversor) y acumulado: así el
     // punto del año 10 de cada curva coincide con el VAN del escenario y las
-    // curvas de VAN negativo terminan debajo del cero. La base de precio/CVU/
-    // volumen/CF es la misma trayectoria: se dibuja una sola vez como línea
-    // destacada (la de MP difiere porque su anexo usa otra base de flujo).
+    // curvas de VAN negativo terminan debajo del cero. La primera trayectoria
+    // con d=0 es la base; las demás d=0 que coinciden con ella son duplicados
+    // y se saltean (en la vista proyecto la de MP difiere: queda como línea).
     var rate = 1 + ((M.BASE && M.BASE.tasaInv) || 10.2) / 100;
-    var lines = [];
-    var base = null;
-    M.scenarios.forEach(function (g) {
-      g.rows.forEach(function (r) {
-        var pts = [], acc = 0, i;
-        for (i = 0; i < r.ff.length; i++) { acc += r.ff[i] / Math.pow(rate, i); pts.push(acc); }
-        var l = { key: g.key, label: g.label, d: r.d, pts: pts, van: r.van, tir: r.tir };
-        if (r.d === 0 && g.key !== "mp") {
-          if (!base) { l.key = "base"; l.label = "Escenario base"; base = l; }
-          return;                          // las otras bases son duplicados exactos
-        }
-        lines.push(l);
+
+    function sameSeries(a, b) {
+      for (var i = 0; i < a.length; i++) if (Math.abs(a[i] - b[i]) > 0.5) return false;
+      return true;
+    }
+
+    function buildDataset(groups) {
+      var lines = [], base = null;
+      groups.forEach(function (g) {
+        g.rows.forEach(function (r) {
+          var pts = [], acc = 0, i;
+          for (i = 0; i < r.ff.length; i++) { acc += r.ff[i] / Math.pow(rate, i); pts.push(acc); }
+          var l = { key: g.key, label: g.label, d: r.d, pts: pts, van: r.van, tir: r.tir };
+          if (r.d === 0) {
+            if (!base) { l.key = "base"; l.label = "Escenario base"; base = l; return; }
+            if (sameSeries(l.pts, base.pts)) return;
+          }
+          lines.push(l);
+        });
       });
-    });
+      return { lines: lines, base: base };
+    }
+
+    var datasets = {
+      proyecto: buildDataset(M.scenarios),
+      inversor: M.scenariosInvestor ? buildDataset(M.scenariosInvestor) : null
+    };
+    var mode = "proyecto";
+    var lines = datasets[mode].lines;
+    var base = datasets[mode].base;
     if (!base) return;
 
     var hiddenKeys = {};      // key de driver -> true si está oculto desde la leyenda
     var highlighted = null;   // línea bajo el cursor
     var geom = null;          // escalas del último render (para el hit-test del hover)
+
+    /* ---- Tabs Proyecto / Inversor: cambian el set de trayectorias ---- */
+    var modesWrap = document.getElementById("mcModes");
+    var noteEl = document.getElementById("mcNote");
+    var NOTES = {
+      proyecto: "Flujo de fondos del proyecto completo (base: VAN $6.940M · TIR 65,2%). Pasá el mouse (o tocá) una línea para ver su escenario: driver, variación, VAN y TIR. Los escenarios de materia prima corren sobre la base de flujo del inversor, por eso forman la banda inferior.",
+      inversor: "Flujo que efectivamente recibe el inversor: 100% de los años 1-3, 60% del año 4 y 34% de los años 5-10 (base: VAN $2.242M · TIR 42,2%). Pasá el mouse (o tocá) una línea para ver su escenario: driver, variación, VAN y TIR."
+    };
+    function setMode(m) {
+      if (m === mode || !datasets[m]) return;
+      mode = m;
+      lines = datasets[m].lines;
+      base = datasets[m].base;
+      highlighted = null;
+      tip.hidden = true;
+      if (modesWrap) {
+        [].forEach.call(modesWrap.querySelectorAll(".mc-mode"), function (b) {
+          var on = b.dataset.mode === m;
+          b.classList.toggle("is-active", on);
+          b.setAttribute("aria-selected", on ? "true" : "false");
+        });
+      }
+      if (noteEl && NOTES[m]) noteEl.textContent = NOTES[m];
+      render();
+    }
+    if (modesWrap) {
+      [].forEach.call(modesWrap.querySelectorAll(".mc-mode"), function (b) {
+        b.addEventListener("click", function () { setMode(b.dataset.mode); });
+      });
+    }
 
     function visibleLines() {
       return lines.filter(function (l) { return !hiddenKeys[l.key]; });
@@ -683,7 +729,8 @@
       if (hit !== highlighted) { highlighted = hit; render(); }
       if (hit) {
         var head = hit.key === "base" ? "Base" : hit.label + " " + (hit.d > 0 ? "+" : "") + hit.d + "%";
-        tip.textContent = head + " · VAN " + fmtVanM(hit.van) + " · TIR " + hit.tir.toFixed(1) + "%";
+        var tirTxt = (hit.tir === null) ? "" : " · TIR " + hit.tir.toFixed(1) + "%";
+        tip.textContent = head + " · VAN " + fmtVanM(hit.van) + tirTxt;
         tip.hidden = false;
         var tw = tip.offsetWidth, th = tip.offsetHeight;
         // Prioriza el borde izquierdo: si el tip es más ancho que el canvas,
