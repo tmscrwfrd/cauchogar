@@ -525,13 +525,14 @@
     var BASE_COLOR = "#f2f2ec";
     var PAD = { top: 14, right: 18, bottom: 30, left: 68 };
 
-    // FF descontado a valor presente (tasa del inversor) y acumulado: así el
-    // punto del año 10 de cada curva coincide con el VAN del escenario y las
-    // curvas de VAN negativo terminan debajo del cero. La primera trayectoria
-    // con d=0 es la base; las demás d=0 que coinciden con ella son duplicados
-    // y se saltean (en la vista proyecto la de MP difiere: queda como línea).
-    var rate = 1 + ((M.BASE && M.BASE.tasaInv) || 10.2) / 100;
-
+    // Cada curva es el VAN acumulado año a año del modelo (vanY: VPN del flujo
+    // cortado en ese año, a la tasa del inversor), así el punto del año 10
+    // coincide con el VAN del escenario y las curvas de VAN negativo terminan
+    // debajo del cero. tirY trae la TIR de ese mismo flujo cortado —cuánto
+    // rendiría cerrar en ese año— y es null hasta que el flujo recupera la
+    // inversión. La primera trayectoria con d=0 es la base; las demás d=0 que
+    // coinciden con ella son duplicados y se saltean (en la vista proyecto la
+    // de MP difiere: queda como línea).
     function sameSeries(a, b) {
       for (var i = 0; i < a.length; i++) if (Math.abs(a[i] - b[i]) > 0.5) return false;
       return true;
@@ -541,9 +542,10 @@
       var lines = [], base = null;
       groups.forEach(function (g) {
         g.rows.forEach(function (r) {
-          var pts = [], acc = 0, i;
-          for (i = 0; i < r.ff.length; i++) { acc += r.ff[i] / Math.pow(rate, i); pts.push(acc); }
-          var l = { key: g.key, label: g.label, d: r.d, pts: pts, van: r.van, tir: r.tir };
+          var l = {
+            key: g.key, label: g.label, d: r.d,
+            pts: r.vanY, tirY: r.tirY, van: r.van, tir: r.tir
+          };
           if (r.d === 0) {
             if (!base) { l.key = "base"; l.label = "Escenario base"; base = l; return; }
             if (sameSeries(l.pts, base.pts)) return;
@@ -565,14 +567,16 @@
 
     var hiddenKeys = {};      // key de driver -> true si está oculto desde la leyenda
     var highlighted = null;   // línea bajo el cursor
+    var hoverYear = null;     // año (0..10) bajo el cursor
     var geom = null;          // escalas del último render (para el hit-test del hover)
 
     /* ---- Tabs Proyecto / Inversor: cambian el set de trayectorias ---- */
     var modesWrap = document.getElementById("mcModes");
     var noteEl = document.getElementById("mcNote");
+    var MODE_LABEL = { proyecto: "Proyecto", inversor: "Inversor" };
     var NOTES = {
-      proyecto: "Flujo de fondos del proyecto completo (base: VAN $6.940M · TIR 65,2%). Pasá el mouse (o tocá) una línea para ver su escenario: driver, variación, VAN y TIR. Los escenarios de materia prima corren sobre la base de flujo del inversor, por eso forman la banda inferior.",
-      inversor: "Flujo que efectivamente recibe el inversor: 100% de los años 1-3, 60% del año 4 y 34% de los años 5-10 (base: VAN $2.242M · TIR 42,2%). Pasá el mouse (o tocá) una línea para ver su escenario: driver, variación, VAN y TIR."
+      proyecto: "Flujo de fondos del proyecto completo (base: VAN $6.940M · TIR 65,2%). Pasá el mouse (o tocá) una línea para leerla año por año: VAN acumulado y TIR de cerrar en ese año, con el detalle completo en la tabla de abajo. La TIR aparece recién cuando el flujo recupera la inversión. Los escenarios de materia prima corren sobre la base de flujo del inversor, por eso forman la banda inferior.",
+      inversor: "Flujo que efectivamente recibe el inversor: 100% de los años 1-3, 60% del año 4 y 34% de los años 5-10 (base: VAN $2.242M · TIR 42,2%). Pasá el mouse (o tocá) una línea para leerla año por año: VAN acumulado y TIR de cerrar en ese año, con el detalle completo en la tabla de abajo. La TIR aparece recién cuando el flujo recupera la inversión."
     };
     function setMode(m) {
       if (m === mode || !datasets[m]) return;
@@ -580,6 +584,7 @@
       lines = datasets[m].lines;
       base = datasets[m].base;
       highlighted = null;
+      hoverYear = null;
       tip.hidden = true;
       if (modesWrap) {
         [].forEach.call(modesWrap.querySelectorAll(".mc-mode"), function (b) {
@@ -590,6 +595,7 @@
       }
       if (noteEl && NOTES[m]) noteEl.textContent = NOTES[m];
       render();
+      renderYearly();
     }
     if (modesWrap) {
       [].forEach.call(modesWrap.querySelectorAll(".mc-mode"), function (b) {
@@ -615,6 +621,13 @@
       if (n === 0) n = 0;                 // normaliza el -0 de los ticks flotantes
       return "$" + n.toLocaleString("es-AR") + "M";
     }
+    /* TIR null = el flujo acumulado todavía no cambia de signo en ese año */
+    function fmtTir(t) {
+      return (t === null || t === undefined) ? "—" : t.toFixed(1).replace(".", ",") + "%";
+    }
+    function scenName(l) {
+      return l.key === "base" ? "Escenario base" : l.label + " " + (l.d > 0 ? "+" : "") + l.d + "%";
+    }
 
     function render() {
       var dpr = window.devicePixelRatio || 1;
@@ -639,7 +652,7 @@
 
       function x(i) { return PAD.left + (i / 10) * (w - PAD.left - PAD.right); }
       function y(v) { return PAD.top + (1 - (v - min) / span) * (h - PAD.top - PAD.bottom); }
-      geom = { x: x, y: y };
+      geom = { x: x, y: y, w: w, h: h };
 
       /* Grid horizontal + labels de M$ (el cero va más marcado) */
       ctx.font = '10px "Space Mono", ui-monospace, monospace';
@@ -660,13 +673,29 @@
         ctx.fillText(fmtVanM(v), PAD.left - 8, yy);
       }
 
-      /* Ticks de años (cada 2 si el ancho aprieta) */
+      /* Ticks de años (cada 2 si el ancho aprieta; el año bajo el cursor
+         siempre se dibuja, resaltado) */
       var everyX = w < 520 ? 2 : 1;
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
-      ctx.fillStyle = "rgba(142,145,138,.9)";
-      for (var i = 0; i <= 10; i += everyX) {
+      for (var i = 0; i <= 10; i++) {
+        var onYear = i === hoverYear;
+        if (i % everyX !== 0 && !onYear) continue;
+        ctx.fillStyle = onYear ? "#cdff00" : "rgba(142,145,138,.9)";
         ctx.fillText(String(i), x(i), h - PAD.bottom + 8);
+      }
+
+      /* Guía vertical del año bajo el cursor (detrás de las trayectorias) */
+      if (hoverYear !== null) {
+        ctx.save();
+        ctx.setLineDash([3, 4]);
+        ctx.strokeStyle = "rgba(242,242,236,.28)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x(hoverYear), PAD.top);
+        ctx.lineTo(x(hoverYear), h - PAD.bottom);
+        ctx.stroke();
+        ctx.restore();
       }
 
       function strokeLine(l, color, alpha, width) {
@@ -692,14 +721,33 @@
       if (highlighted) {
         var hc = highlighted.key === "base" ? BASE_COLOR : COLORS[highlighted.key];
         strokeLine(highlighted, hc, 1, 2.6);
-        ctx.fillStyle = hc;
+      }
+
+      /* Marcador del año leído: sobre la línea resaltada o, si no hay
+         ninguna, sobre la base (que es la que muestra la tabla). */
+      var readLine = highlighted || (hoverYear !== null ? base : null);
+      if (readLine) {
+        var yr = hoverYear === null ? 10 : hoverYear;
+        var rc = readLine.key === "base" ? BASE_COLOR : COLORS[readLine.key];
         ctx.beginPath();
-        ctx.arc(x(10), y(highlighted.pts[10]), 3.4, 0, Math.PI * 2);
+        ctx.arc(x(yr), y(readLine.pts[yr]), 3.8, 0, Math.PI * 2);
+        ctx.fillStyle = rc;
         ctx.fill();
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = "#0a0a09";
+        ctx.stroke();
       }
     }
 
     /* ---- Hover / tap: resaltar la línea más cercana + tooltip ---- */
+    /* Tooltip en dos líneas: escenario + año arriba, VAN/TIR de ese año abajo */
+    var tipHead = document.createElement("span");
+    tipHead.className = "mc-tip-head";
+    var tipVals = document.createElement("span");
+    tipVals.className = "mc-tip-vals";
+    tip.appendChild(tipHead);
+    tip.appendChild(tipVals);
+
     function segDist(px, py, x1, y1, x2, y2) {
       var dx = x2 - x1, dy = y2 - y1;
       var len2 = (dx * dx + dy * dy) || 1;
@@ -722,15 +770,30 @@
       return best;
     }
 
+    /* Año más cercano al cursor; null si el puntero está fuera del área de plot */
+    function yearAt(mx, my) {
+      if (!geom) return null;
+      if (mx < PAD.left - 8 || mx > geom.w - PAD.right + 8) return null;
+      if (my < PAD.top - 8 || my > geom.h - PAD.bottom + 8) return null;
+      var i = Math.round(((mx - PAD.left) / (geom.w - PAD.left - PAD.right)) * 10);
+      return Math.max(0, Math.min(10, i));
+    }
+
     function onMove(e) {
       var rect = canvas.getBoundingClientRect();
       var mx = e.clientX - rect.left, my = e.clientY - rect.top;
       var hit = nearestLine(mx, my);
-      if (hit !== highlighted) { highlighted = hit; render(); }
-      if (hit) {
+      var yr = yearAt(mx, my);
+      if (hit !== highlighted || yr !== hoverYear) {
+        highlighted = hit;
+        hoverYear = yr;
+        render();
+        renderYearly();
+      }
+      if (hit && yr !== null) {
         var head = hit.key === "base" ? "Base" : hit.label + " " + (hit.d > 0 ? "+" : "") + hit.d + "%";
-        var tirTxt = (hit.tir === null) ? "" : " · TIR " + hit.tir.toFixed(1) + "%";
-        tip.textContent = head + " · VAN " + fmtVanM(hit.van) + tirTxt;
+        tipHead.textContent = head + " · Año " + yr;
+        tipVals.textContent = "VAN " + fmtVanM(hit.pts[yr]) + " · TIR " + fmtTir(hit.tirY[yr]);
         tip.hidden = false;
         var tw = tip.offsetWidth, th = tip.offsetHeight;
         // Prioriza el borde izquierdo: si el tip es más ancho que el canvas,
@@ -752,9 +815,59 @@
       // vacía lo oculta vía la rama else de onMove).
       if (e.pointerType && e.pointerType !== "mouse") return;
       highlighted = null;
+      hoverYear = null;
       tip.hidden = true;
       render();
+      renderYearly();
     });
+
+    /* ---- Tabla año por año del escenario leído (el resaltado, o la base) ---- */
+    var yearlyWrap = document.getElementById("mcYearly");
+    var yearlyScen = null, yearlyHead = [], yearlyVan = [], yearlyTir = [];
+
+    function buildYearly() {
+      if (!yearlyWrap) return;
+      var years = "", cells = "", i;
+      for (i = 0; i <= 10; i++) {
+        years += '<th scope="col">' + i + "</th>";
+        cells += "<td>—</td>";
+      }
+      yearlyWrap.innerHTML =
+        '<div class="mc-yearly-head">' +
+          '<h5 class="mc-yearly-title">VAN y TIR año por año</h5>' +
+          '<p class="mc-yearly-scen"></p>' +
+        '</div>' +
+        '<div class="mc-yearly-scroll">' +
+          '<table class="mc-yearly-table">' +
+            '<caption>VAN acumulado y TIR de cerrar en cada año, para el escenario resaltado en el gráfico.</caption>' +
+            '<thead><tr><th scope="col">Año</th>' + years + '</tr></thead>' +
+            '<tbody>' +
+              '<tr class="mc-yearly-van"><th scope="row">VAN (M$)</th>' + cells + '</tr>' +
+              '<tr class="mc-yearly-tir"><th scope="row">TIR</th>' + cells + '</tr>' +
+            '</tbody>' +
+          '</table>' +
+        '</div>';
+      yearlyScen = yearlyWrap.querySelector(".mc-yearly-scen");
+      yearlyHead = [].slice.call(yearlyWrap.querySelectorAll("thead th")).slice(1);
+      yearlyVan = [].slice.call(yearlyWrap.querySelectorAll(".mc-yearly-van td"));
+      yearlyTir = [].slice.call(yearlyWrap.querySelectorAll(".mc-yearly-tir td"));
+    }
+
+    function renderYearly() {
+      if (!yearlyScen) return;
+      var l = highlighted || base;
+      yearlyScen.textContent = scenName(l) + " · " + MODE_LABEL[mode];
+      for (var i = 0; i <= 10; i++) {
+        var van = Math.round(l.pts[i]);
+        var on = i === hoverYear;
+        yearlyVan[i].textContent = van.toLocaleString("es-AR");
+        yearlyVan[i].classList.toggle("is-neg", van < 0);
+        yearlyTir[i].textContent = fmtTir(l.tirY[i]);
+        yearlyHead[i].classList.toggle("is-on", on);
+        yearlyVan[i].classList.toggle("is-on", on);
+        yearlyTir[i].classList.toggle("is-on", on);
+      }
+    }
 
     /* ---- Leyenda: base fija + un toggle por driver ---- */
     var baseTag = document.createElement("span");
@@ -773,12 +886,15 @@
         b.setAttribute("aria-pressed", hiddenKeys[g.key] ? "false" : "true");
         if (highlighted && highlighted.key === g.key) { highlighted = null; tip.hidden = true; }
         render();
+        renderYearly();
       });
       legendWrap.appendChild(b);
     });
 
+    buildYearly();
     window.addEventListener("resize", debounce(render, 120));
     render();
+    renderYearly();
     // Re-render cuando cargue Space Mono: el primer paint puede rasterizar
     // los labels del eje con la fuente fallback (display=swap no re-pinta canvas).
     if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
