@@ -379,6 +379,37 @@
     });
   })();
 
+  /* ---- VAN y TIR año a año de cada trayectoria ----
+     Para el año n se corta el flujo en ese año y se recalcula:
+       vanY[n] = VPN del flujo 0..n a la tasa del inversor (10,2%)
+       tirY[n] = TIR de ese mismo flujo cortado — "si el proyecto
+                 terminara en el año n". Queda null mientras el flujo no
+                 cambia de signo (todavía no recuperó la inversión).
+     El año 10 se ancla al VAN/TIR declarado de la sheet: los ff vienen
+     redondeados a M$ y el recálculo desviaría unos pocos millones de los
+     números que muestra el resto del dashboard. */
+  function addYearly(groups) {
+    groups.forEach(function (g) {
+      g.rows.forEach(function (r) {
+        var vanY = [], tirY = [], last = r.ff.length - 1, i, cut, t;
+        for (i = 0; i <= last; i++) {
+          cut = r.ff.slice(0, i + 1);
+          vanY.push(Math.round(npvOf(cut, BASE.tasaInv)));
+          t = irrOf(cut);
+          tirY.push(t === null ? null : Math.round(t * 10) / 10);
+        }
+        vanY[last] = r.van;
+        tirY[last] = r.tir;
+        r.vanY = vanY;
+        r.tirY = tirY;
+      });
+    });
+  }
+  /* SCENARIOS_INV comparte por referencia las filas de MP: recalcularlas es
+     idempotente (mismo ff → mismo resultado). */
+  addYearly(SCENARIOS);
+  addYearly(SCENARIOS_INV);
+
   window.CAUCHO = {
     BASE: BASE,
     drivers: DRIVER_LIST,
