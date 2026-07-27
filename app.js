@@ -553,16 +553,25 @@
           lines.push(l);
         });
       });
-      return { lines: lines, base: base };
+      // Escala del eje Y fija por set: sale de TODAS las trayectorias, también
+      // las que estén ocultas, así prender y apagar drivers en la leyenda no
+      // reescala el gráfico y las curvas se pueden comparar entre filtros.
+      var min = Infinity, max = -Infinity;
+      lines.concat(base ? [base] : []).forEach(function (l) {
+        l.pts.forEach(function (v) { if (v < min) min = v; if (v > max) max = v; });
+      });
+      var pad = ((max - min) || 1) * 0.04;
+      return { lines: lines, base: base, min: min - pad, max: max + pad };
     }
 
     var datasets = {
       proyecto: buildDataset(M.scenarios),
       inversor: M.scenariosInvestor ? buildDataset(M.scenariosInvestor) : null
     };
-    var mode = "proyecto";
-    var lines = datasets[mode].lines;
-    var base = datasets[mode].base;
+    var mode = datasets.inversor ? "inversor" : "proyecto";   // el inversor es la vista por defecto
+    var dset = datasets[mode];
+    var lines = dset.lines;
+    var base = dset.base;
     if (!base) return;
 
     var hiddenKeys = {};      // key de driver -> true si está oculto desde la leyenda
@@ -581,8 +590,9 @@
     function setMode(m) {
       if (m === mode || !datasets[m]) return;
       mode = m;
-      lines = datasets[m].lines;
-      base = datasets[m].base;
+      dset = datasets[m];
+      lines = dset.lines;
+      base = dset.base;
       highlighted = null;
       hoverYear = null;
       tip.hidden = true;
@@ -640,15 +650,8 @@
       ctx.clearRect(0, 0, w, h);
 
       var vis = visibleLines();
-      var all = vis.concat([base]);
-      var min = Infinity, max = -Infinity;
-      all.forEach(function (l) {
-        l.pts.forEach(function (v) { if (v < min) min = v; if (v > max) max = v; });
-      });
+      var min = dset.min, max = dset.max;
       var span = (max - min) || 1;
-      min -= span * 0.04;
-      max += span * 0.04;
-      span = max - min;
 
       function x(i) { return PAD.left + (i / 10) * (w - PAD.left - PAD.right); }
       function y(v) { return PAD.top + (1 - (v - min) / span) * (h - PAD.top - PAD.bottom); }
